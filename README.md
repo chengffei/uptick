@@ -2,7 +2,18 @@
 
 A free, open-source way to see which of your Mac apps have updates, as a successor to MacUpdater.
 
-> **Status: early.** No release yet; build it from source. The app finds updates, verifies uncertain ones, and installs them. English and Simplified Chinese.
+> **Status: early.** The app finds updates, verifies uncertain ones, and installs them. English and Simplified Chinese.
+
+## Install
+
+1. Download [Uptick-0.1.0.dmg](https://github.com/chengffei/uptick/releases/latest/download/Uptick-0.1.0.dmg) and drag Uptick into Applications.
+2. Uptick is signed but not notarized, so macOS blocks the first launch. Open it, close the warning, then click **Open Anyway** in *System Settings › Privacy & Security*. Or run this once in Terminal and open Uptick as usual:
+
+   ```sh
+   xattr -dr com.apple.quarantine /Applications/Uptick.app
+   ```
+
+Requires macOS 14 or later.
 
 ## How it works
 
@@ -27,6 +38,7 @@ Requires macOS 14 or later and Xcode.
 
 ```sh
 scripts/bundle.sh --open         # builds and opens build/Uptick.app
+scripts/make-release.sh          # universal release → dist/Uptick-<version>.dmg and .zip
 ```
 
 The same engine is available on the command line:
