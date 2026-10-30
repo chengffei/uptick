@@ -65,9 +65,9 @@ public struct Checker {
             return CheckResult(app: app, status: .unknown, source: nil, latest: nil, downloadURL: nil)
         }
         if app.isAppStore, let record = store[app.bundleID] {
-            // A universal purchase shares one record with the iPhone app, and its version is the iPhone one.
-            let shared = app.kind == .mac && record.kind != "mac-software"
-            return compare(app, latest: record.version, source: .appStore, trusted: !shared)
+            // Only the desktopSoftware entity is reliable for Mac apps; the macSoftware fallback can
+            // return the iPhone version of a universal purchase (百度网盘 8.9.7 vs 13.36.0).
+            return compare(app, latest: record.version, source: .appStore, trusted: app.kind == .iosWrapper || record.desktop)
         }
         if let feed = app.sparkleFeed,
            let data = try? await fetch(feed),
@@ -117,35 +117,41 @@ public struct Checker {
     /// One batched lookup per store region; falls back to the US store for apps the local store lacks.
     struct StoreRecord: Sendable {
         let version: String
-        /// "mac-software" for a Mac-only record, "software" for iPhone or universal.
-        let kind: String
+        /// Found through entity=desktopSoftware, which returns the Mac build's metadata.
+        let desktop: Bool
     }
 
+    /// Batched lookups per store region, local region first, then the US store for apps it lacks.
+    /// Mac apps try entity=desktopSoftware before the broader macSoftware (same order as Latest).
     func appStoreVersions(for apps: [InstalledApp]) async -> [String: StoreRecord] {
         var found: [String: StoreRecord] = [:]
-        for region in Array(Set([country, "us"])).sorted(by: { a, _ in a == country }) {
-            let mac = apps.filter { $0.kind == .mac && found[$0.bundleID] == nil }.map(\.bundleID)
-            let ios = apps.filter { $0.kind == .iosWrapper && found[$0.bundleID] == nil }.compactMap(\.appStoreItemID)
-            var queries: [URLQueryItem] = []
-            if !mac.isEmpty {
-                queries.append(contentsOf: [.init(name: "bundleId", value: mac.joined(separator: ",")),
-                                            .init(name: "entity", value: "macSoftware")])
+        for region in [country] + (country == "us" ? [] : ["us"]) {
+            for entity in ["desktopSoftware", "macSoftware"] {
+                let mac = apps.filter { $0.kind == .mac && found[$0.bundleID] == nil }.map(\.bundleID)
+                guard !mac.isEmpty else { break }
+                await lookup([.init(name: "bundleId", value: mac.joined(separator: ",")), .init(name: "entity", value: entity)],
+                             region: region, desktop: entity == "desktopSoftware", into: &found)
             }
-            for query in [queries, ios.isEmpty ? [] : [.init(name: "id", value: ios.map(String.init).joined(separator: ","))]]
-            where !query.isEmpty {
-                var components = URLComponents(string: "https://itunes.apple.com/lookup")!
-                components.queryItems = query + [.init(name: "country", value: region)]
-                guard let data = try? await fetch(components.url!),
-                      let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                      let results = json["results"] as? [[String: Any]] else { continue }
-                for result in results {
-                    if let id = result["bundleId"] as? String, let version = result["version"] as? String {
-                        found[id] = StoreRecord(version: version, kind: result["kind"] as? String ?? "")
-                    }
-                }
+            let ios = apps.filter { $0.kind == .iosWrapper && found[$0.bundleID] == nil }.compactMap(\.appStoreItemID)
+            if !ios.isEmpty {
+                await lookup([.init(name: "id", value: ios.map(String.init).joined(separator: ","))],
+                             region: region, desktop: false, into: &found)
             }
         }
         return found
+    }
+
+    private func lookup(_ query: [URLQueryItem], region: String, desktop: Bool, into found: inout [String: StoreRecord]) async {
+        var components = URLComponents(string: "https://itunes.apple.com/lookup")!
+        components.queryItems = query + [.init(name: "country", value: region)]
+        guard let data = try? await fetch(components.url!),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let results = json["results"] as? [[String: Any]] else { return }
+        for result in results {
+            if let id = result["bundleId"] as? String, let version = result["version"] as? String, found[id] == nil {
+                found[id] = StoreRecord(version: version, desktop: desktop)
+            }
+        }
     }
 
     func electronVersion(_ feed: ElectronFeed) async -> String? {
