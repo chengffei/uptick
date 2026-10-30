@@ -25,20 +25,24 @@ struct ContentView: View {
             }
         }
         .listStyle(.inset(alternatesRowBackgrounds: false))
-        .overlay {
-            if model.results.isEmpty && model.isChecking {
-                ProgressView("Checking…")
-            }
+        .opacity(model.isChecking && !model.results.isEmpty ? 0.45 : 1)
+        .animation(.easeInOut(duration: 0.2), value: model.isChecking)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if model.isChecking { CheckingBar(progress: model.progress) }
         }
         .navigationSubtitle(subtitle)
         .toolbar {
             ToolbarItemGroup {
-                Button {
-                    Task { await model.refresh() }
-                } label: {
-                    Label("Check Again", systemImage: "arrow.clockwise")
+                if model.isChecking {
+                    ProgressView().controlSize(.small).padding(.horizontal, 6)
+                } else {
+                    Button {
+                        Task { await model.refresh() }
+                    } label: {
+                        Label("Check Again", systemImage: "arrow.clockwise")
+                    }
+                    .help("Check Again")
                 }
-                .disabled(model.isChecking)
                 Button("Update All") {
                     Task { await model.updateAll() }
                 }
@@ -76,6 +80,34 @@ struct ContentView: View {
             Text(verbatim: "\(count)").foregroundStyle(.secondary)
         }
         .font(.headline)
+    }
+}
+
+/// Shown above the list while checking: what is happening and how far along it is.
+struct CheckingBar: View {
+    let progress: (done: Int, total: Int)
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(progress.done == 0 ? "Fetching update sources…" : "Checking apps…")
+                    .font(.callout.weight(.medium))
+                Spacer()
+                if progress.total > 0 {
+                    Text(verbatim: "\(progress.done) / \(progress.total)")
+                        .font(.callout.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+            }
+            if progress.done == 0 {
+                ProgressView().progressViewStyle(.linear)
+            } else {
+                ProgressView(value: Double(progress.done), total: Double(max(progress.total, 1)))
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(.bar)
     }
 }
 
@@ -145,5 +177,6 @@ struct AppRow: View {
     private func button(_ title: LocalizedStringKey) -> some View {
         Button(title) { Task { await model.act(on: result) } }
             .controlSize(.small)
+            .disabled(model.isChecking)
     }
 }

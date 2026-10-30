@@ -35,14 +35,22 @@ enum Snapshot {
         app.setActivationPolicy(.prohibited)
         let model = AppModel()
         Task {
-            await model.refresh()
+            // UPTICK_SNAPSHOT_CHECKING=1 captures the window mid-check instead of after it.
+            let midCheck = ProcessInfo.processInfo.environment["UPTICK_SNAPSHOT_CHECKING"] != nil
+            if midCheck {
+                await model.refresh()
+                Task { await model.refresh() }
+                try? await Task.sleep(nanoseconds: 300_000_000)
+            } else {
+                await model.refresh()
+            }
             let host = NSHostingView(rootView: ContentView().environment(model))
             let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 720, height: 900),
                                   styleMask: [.titled], backing: .buffered, defer: false)
             window.appearance = NSAppearance(named: .aqua)
             window.contentView = host
             host.layoutSubtreeIfNeeded()
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            try? await Task.sleep(nanoseconds: midCheck ? 100_000_000 : 1_000_000_000)
             host.layoutSubtreeIfNeeded()
             if let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) {
                 host.cacheDisplay(in: host.bounds, to: rep)

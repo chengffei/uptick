@@ -29,3 +29,5 @@
 "The download server sent a web page instead of the app. The vendor may block direct downloads." = "下载服务器返回的是网页而不是安装包，厂商可能不允许直接下载。";
 "Updated on disk. The running copy is older until you relaunch it." = "磁盘上已是新版，正在运行的还是旧版，重启后生效。";
 "Relaunch" = "重启";
+"Fetching update sources…" = "正在获取更新源…";
+"Checking apps…" = "正在检查 app…";

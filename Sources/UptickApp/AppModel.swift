@@ -21,6 +21,8 @@ final class AppModel {
     private(set) var results: [CheckResult] = []
     private(set) var isChecking = false
     private(set) var lastChecked: Date?
+    /// Apps checked so far in the current run, and how many there are.
+    private(set) var progress = (done: 0, total: 0)
     private(set) var jobs: [URL: Job] = [:]
     /// Apps whose files on disk were replaced after the running copy started (Chrome's own
     /// updater does this), so what the user sees in the app is older than what is installed.
@@ -46,9 +48,13 @@ final class AppModel {
     func refresh() async {
         guard !isChecking else { return }
         isChecking = true
+        progress = (0, 0)
         defer { isChecking = false }
         let apps = await Task.detached { AppScanner.scan() }.value
-        results = await Checker(learned: learned).check(apps)
+        progress = (0, apps.count)
+        results = await Checker(learned: learned).check(apps) { done, total in
+            Task { @MainActor in self.progress = (max(self.progress.done, done), total) }
+        }
         jobs = [:]
         awaitingRelaunch = Set(apps.map(\.url).filter(Self.isAwaitingRelaunch))
         lastChecked = Date()

@@ -46,7 +46,8 @@ public struct Checker {
         self.cacheDirectory = cacheDirectory
     }
 
-    public func check(_ apps: [InstalledApp]) async -> [CheckResult] {
+    /// `progress` is called with (checked, total) as each app finishes, from any thread.
+    public func check(_ apps: [InstalledApp], progress: (@Sendable (Int, Int) -> Void)? = nil) async -> [CheckResult] {
         async let storeVersions = appStoreVersions(for: apps.filter(\.isAppStore))
         async let casks = loadCaskIndex()
         let store = await storeVersions
@@ -57,7 +58,12 @@ public struct Checker {
                 group.addTask { (i, await check(app, store: store, casks: index)) }
             }
             var results = [CheckResult?](repeating: nil, count: apps.count)
-            for await (i, result) in group { results[i] = learned.apply(to: result) }
+            var done = 0
+            for await (i, result) in group {
+                results[i] = learned.apply(to: result)
+                done += 1
+                progress?(done, apps.count)
+            }
             return results.compactMap { $0 }
         }
     }
