@@ -31,3 +31,5 @@
 "Relaunch" = "重启";
 "Fetching update sources…" = "正在获取更新源…";
 "Checking apps…" = "正在检查 app…";
+"Uptick %@ is available" = "Uptick %@ 已发布";
+"Update and Relaunch" = "更新并重启";

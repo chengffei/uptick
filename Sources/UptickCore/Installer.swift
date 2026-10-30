@@ -41,7 +41,9 @@ public enum InstallError: Error, LocalizedError {
 /// The old copy goes to the Trash, so a bad update can be undone by hand.
 public enum Installer {
     /// Downloads and checks the update, then installs it unless `inspectOnly` is set.
-    public static func run(_ result: CheckResult, inspectOnly: Bool = false) async throws -> InstallOutcome {
+    /// `quitRunning: false` replaces the files under a running app (used for Uptick itself,
+    /// which relaunches on its own afterwards).
+    public static func run(_ result: CheckResult, inspectOnly: Bool = false, quitRunning: Bool = true) async throws -> InstallOutcome {
         guard let url = result.downloadURL else { throw InstallError.noDownload }
         let file = try await PackageInspector.download(url)
 
@@ -66,7 +68,7 @@ public enum Installer {
                 && Version(app.build ?? "") < Version(package.info.build ?? ""))
         guard newer, !inspectOnly else { return .notNewer(package.info) }
 
-        let wasRunning = try await quit(app.url)
+        let wasRunning = quitRunning ? try await quit(app.url) : false
         try replace(app.url, with: package.app)
         if wasRunning {
             _ = try? await NSWorkspace.shared.openApplication(at: app.url, configuration: .init())

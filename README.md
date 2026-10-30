@@ -6,12 +6,17 @@ A free, open-source way to see which of your Mac apps have updates, as a success
 
 ## Install
 
-1. Download [Uptick-0.1.0.dmg](https://github.com/chengffei/uptick/releases/latest/download/Uptick-0.1.0.dmg) and drag Uptick into Applications.
-2. Uptick is signed but not notarized, so macOS blocks the first launch. Open it, close the warning, then click **Open Anyway** in *System Settings › Privacy & Security*. Or run this once in Terminal and open Uptick as usual:
+**One line in Terminal** (recommended):
 
-   ```sh
-   xattr -dr com.apple.quarantine /Applications/Uptick.app
-   ```
+```sh
+curl -fsSL https://raw.githubusercontent.com/chengffei/uptick/main/install.sh | bash
+```
+
+The [script](install.sh) downloads the latest release, checks its SHA-256, code signature, bundle ID and developer team, and puts Uptick in Applications. Downloads made this way are not quarantined, so macOS opens Uptick without a warning.
+
+**Or download the disk image**: [Uptick-0.1.0.dmg](https://github.com/chengffei/uptick/releases/download/v0.1.0/Uptick-0.1.0.dmg), then drag Uptick into Applications. Uptick is signed but not notarized, so macOS blocks the first launch: open it, close the warning, then click **Open Anyway** in *System Settings › Privacy & Security*.
+
+After that, Uptick updates itself: when a new version is out, a bar at the top of the window offers **Update and Relaunch**.
 
 Requires macOS 14 or later.
 

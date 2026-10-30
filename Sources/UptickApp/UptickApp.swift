@@ -1,11 +1,28 @@
 import AppKit
 import SwiftUI
+import UptickCore
 
 @main
 enum Entry {
     static func main() {
         let arguments = CommandLine.arguments
-        if let i = arguments.firstIndex(of: "--snapshot"), i + 1 < arguments.count {
+        if arguments.contains("--update-self") {
+            // Test hook: update this copy from GitHub without UI or relaunch.
+            Task {
+                if let update = await SelfUpdate.check() {
+                    do {
+                        let outcome = try await Installer.run(update, quitRunning: false)
+                        print("\(update.app.version) → \(update.latest ?? ""): \(outcome)")
+                    } catch {
+                        print("failed: \(error.localizedDescription)")
+                    }
+                } else {
+                    print("already current")
+                }
+                exit(0)
+            }
+            RunLoop.main.run()
+        } else if let i = arguments.firstIndex(of: "--snapshot"), i + 1 < arguments.count {
             Snapshot.run(to: URL(fileURLWithPath: arguments[i + 1]))
         } else {
             UptickApp.main()

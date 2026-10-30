@@ -5,6 +5,7 @@ public enum UpdateSource: String, Sendable {
     case sparkle = "Sparkle"
     case electron = "Electron"
     case homebrew = "Homebrew"
+    case github = "GitHub"
 }
 
 public struct CheckResult: Sendable {

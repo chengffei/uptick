@@ -28,6 +28,9 @@ final class AppModel {
     /// updater does this), so what the user sees in the app is older than what is installed.
     private(set) var awaitingRelaunch: Set<URL> = []
     private var learned = LearnedVersions.load()
+    /// A newer Uptick on GitHub, if any, and what happened when the user installed it.
+    private(set) var selfUpdate: CheckResult?
+    private(set) var selfUpdateJob: Job?
 
     func items(in group: Group) -> [CheckResult] {
         results.filter { result in
@@ -50,6 +53,7 @@ final class AppModel {
         isChecking = true
         progress = (0, 0)
         defer { isChecking = false }
+        async let ownUpdate = SelfUpdate.check()
         let apps = await Task.detached { AppScanner.scan() }.value
         progress = (0, apps.count)
         results = await Checker(learned: learned).check(apps) { done, total in
@@ -57,6 +61,7 @@ final class AppModel {
         }
         jobs = [:]
         awaitingRelaunch = Set(apps.map(\.url).filter(Self.isAwaitingRelaunch))
+        selfUpdate = await ownUpdate
         lastChecked = Date()
     }
 
@@ -84,6 +89,26 @@ final class AppModel {
             }
         } catch {
             jobs[result.app.url] = .failed(error.localizedDescription)
+        }
+    }
+
+    /// Replaces Uptick's own files, then starts the new copy and quits this one.
+    func updateSelf() async {
+        guard let update = selfUpdate else { return }
+        selfUpdateJob = .working
+        do {
+            guard case .installed = try await Installer.run(update, quitRunning: false) else {
+                selfUpdateJob = nil
+                selfUpdate = nil
+                return
+            }
+            let relaunch = Process()
+            relaunch.executableURL = URL(fileURLWithPath: "/bin/sh")
+            relaunch.arguments = ["-c", "sleep 1; /usr/bin/open \"$0\"", update.app.url.path]
+            try relaunch.run()
+            NSApp.terminate(nil)
+        } catch {
+            selfUpdateJob = .failed(error.localizedDescription)
         }
     }
 

@@ -28,7 +28,13 @@ struct ContentView: View {
         .opacity(model.isChecking && !model.results.isEmpty ? 0.45 : 1)
         .animation(.easeInOut(duration: 0.2), value: model.isChecking)
         .safeAreaInset(edge: .top, spacing: 0) {
-            if model.isChecking { CheckingBar(progress: model.progress) }
+            if model.isChecking {
+                CheckingBar(progress: model.progress)
+            } else if let update = model.selfUpdate {
+                SelfUpdateBar(version: update.latest ?? "", job: model.selfUpdateJob) {
+                    Task { await model.updateSelf() }
+                }
+            }
         }
         .navigationSubtitle(subtitle)
         .toolbar {
@@ -103,6 +109,33 @@ struct CheckingBar: View {
                 ProgressView().progressViewStyle(.linear)
             } else {
                 ProgressView(value: Double(progress.done), total: Double(max(progress.total, 1)))
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(.bar)
+    }
+}
+
+/// Offers a newer version of Uptick itself.
+struct SelfUpdateBar: View {
+    let version: String
+    let job: Job?
+    let update: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Uptick \(version) is available").font(.callout.weight(.medium))
+                if case .failed(let message) = job {
+                    Text(message).font(.caption).foregroundStyle(.red)
+                }
+            }
+            Spacer()
+            if job == .working {
+                ProgressView().controlSize(.small)
+            } else {
+                Button("Update and Relaunch", action: update).controlSize(.small)
             }
         }
         .padding(.horizontal, 20)
