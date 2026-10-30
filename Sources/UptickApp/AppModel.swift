@@ -22,6 +22,9 @@ final class AppModel {
     private(set) var isChecking = false
     private(set) var lastChecked: Date?
     private(set) var jobs: [URL: Job] = [:]
+    /// Apps whose files on disk were replaced after the running copy started (Chrome's own
+    /// updater does this), so what the user sees in the app is older than what is installed.
+    private(set) var awaitingRelaunch: Set<URL> = []
     private var learned = LearnedVersions.load()
 
     func items(in group: Group) -> [CheckResult] {
@@ -47,6 +50,7 @@ final class AppModel {
         let apps = await Task.detached { AppScanner.scan() }.value
         results = await Checker(learned: learned).check(apps)
         jobs = [:]
+        awaitingRelaunch = Set(apps.map(\.url).filter(Self.isAwaitingRelaunch))
         lastChecked = Date()
     }
 
@@ -74,6 +78,27 @@ final class AppModel {
             }
         } catch {
             jobs[result.app.url] = .failed(error.localizedDescription)
+        }
+    }
+
+    func relaunch(_ result: CheckResult) async {
+        let url = result.app.url
+        let path = url.standardizedFileURL.path
+        let running = NSWorkspace.shared.runningApplications.filter { $0.bundleURL?.standardizedFileURL.path == path }
+        running.forEach { $0.terminate() }
+        for _ in 0..<50 where running.contains(where: { !$0.isTerminated }) {
+            try? await Task.sleep(nanoseconds: 200_000_000)
+        }
+        _ = try? await NSWorkspace.shared.openApplication(at: url, configuration: .init())
+        awaitingRelaunch.remove(url)
+    }
+
+    static func isAwaitingRelaunch(_ app: URL) -> Bool {
+        let path = app.standardizedFileURL.path
+        guard let modified = (try? app.appendingPathComponent("Contents/Info.plist")
+            .resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate else { return false }
+        return NSWorkspace.shared.runningApplications.contains {
+            $0.bundleURL?.standardizedFileURL.path == path && ($0.launchDate ?? .distantFuture) < modified
         }
     }
 

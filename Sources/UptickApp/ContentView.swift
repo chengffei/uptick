@@ -95,6 +95,9 @@ struct AppRow: View {
                     .lineLimit(1)
                 if case .failed(let message) = model.jobs[result.app.url] {
                     Text(message).font(.caption).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
+                } else if model.awaitingRelaunch.contains(result.app.url) {
+                    Text("Updated on disk. The running copy is older until you relaunch it.")
+                        .font(.caption).foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true)
                 } else if let source = result.source {
                     Text("via \(source.rawValue)").font(.caption).foregroundStyle(.secondary)
                 }
@@ -128,6 +131,8 @@ struct AppRow: View {
             Text("Installer opened").font(.callout).foregroundStyle(.secondary)
         case .failed:
             button("Retry")
+        case nil where model.awaitingRelaunch.contains(result.app.url) && group != .updates:
+            Button("Relaunch") { Task { await model.relaunch(result) } }.controlSize(.small)
         case nil:
             switch group {
             case .updates: button(result.source == .appStore ? "Open App Store" : "Update")
