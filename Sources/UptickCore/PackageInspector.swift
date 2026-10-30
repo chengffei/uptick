@@ -27,12 +27,12 @@ public enum InspectError: Error, CustomStringConvertible {
 /// Nothing is installed; the temporary copy is removed afterwards.
 public enum PackageInspector {
     public static func inspect(_ url: URL, session: URLSession = .shared) async throws -> InspectedApp {
-        let work = FileManager.default.temporaryDirectory.appendingPathComponent("renew-\(UUID().uuidString)")
+        let work = FileManager.default.temporaryDirectory.appendingPathComponent("uptick-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: work, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: work) }
 
         var request = URLRequest(url: url, timeoutInterval: 120)
-        request.setValue("Renew", forHTTPHeaderField: "User-Agent")
+        request.setValue("Uptick", forHTTPHeaderField: "User-Agent")
         let (downloaded, _) = try await session.download(for: request)
         let package = work.appendingPathComponent("package")
         try FileManager.default.moveItem(at: downloaded, to: package)

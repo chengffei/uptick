@@ -20,7 +20,7 @@ public struct LearnedVersions: Codable, Sendable {
 
     public static var defaultFile: URL {
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("Renew/learned.json")
+            .appendingPathComponent("Uptick/learned.json")
     }
 
     public static func load(from file: URL = defaultFile) -> LearnedVersions {

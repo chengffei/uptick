@@ -2,17 +2,17 @@
 import PackageDescription
 
 let package = Package(
-    name: "Renew",
+    name: "Uptick",
     platforms: [
         .macOS(.v14)
     ],
     products: [
-        .library(name: "RenewCore", targets: ["RenewCore"]),
-        .executable(name: "renew", targets: ["renew"])
+        .library(name: "UptickCore", targets: ["UptickCore"]),
+        .executable(name: "uptick", targets: ["uptick"])
     ],
     targets: [
-        .target(name: "RenewCore", path: "Sources/RenewCore"),
-        .executableTarget(name: "renew", dependencies: ["RenewCore"], path: "Sources/renew"),
-        .testTarget(name: "RenewCoreTests", dependencies: ["RenewCore"], path: "Tests/RenewCoreTests")
+        .target(name: "UptickCore", path: "Sources/UptickCore"),
+        .executableTarget(name: "uptick", dependencies: ["UptickCore"], path: "Sources/uptick"),
+        .testTarget(name: "UptickCoreTests", dependencies: ["UptickCore"], path: "Tests/UptickCoreTests")
     ]
 )

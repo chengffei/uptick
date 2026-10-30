@@ -36,7 +36,7 @@ public struct Checker {
     public init(session: URLSession = .shared,
                 country: String = Locale.current.region?.identifier.lowercased() ?? "us",
                 cacheDirectory: URL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
-                    .appendingPathComponent("Renew"),
+                    .appendingPathComponent("Uptick"),
                 learned: LearnedVersions = .load()) {
         self.session = session
         self.learned = learned
@@ -191,7 +191,7 @@ public struct Checker {
 
     func fetch(_ url: URL, timeout: TimeInterval = 15) async throws -> Data {
         var request = URLRequest(url: url, timeoutInterval: timeout)
-        request.setValue("Renew", forHTTPHeaderField: "User-Agent")
+        request.setValue("Uptick", forHTTPHeaderField: "User-Agent")
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
             throw URLError(.badServerResponse)

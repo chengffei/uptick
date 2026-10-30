@@ -1,5 +1,5 @@
 import XCTest
-@testable import RenewCore
+@testable import UptickCore
 
 final class VersionTests: XCTestCase {
     func testEqualIgnoringTrailingZerosAndPrefix() {
@@ -141,7 +141,7 @@ final class LearnedTests: XCTestCase {
 
 final class FormatTests: XCTestCase {
     func testZipMagic() throws {
-        let file = FileManager.default.temporaryDirectory.appendingPathComponent("renew-test.zip")
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent("uptick-test.zip")
         try Data([0x50, 0x4B, 0x03, 0x04, 0, 0]).write(to: file)
         XCTAssertEqual(try PackageInspector.format(of: file), "zip")
     }

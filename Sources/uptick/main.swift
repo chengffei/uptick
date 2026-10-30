@@ -1,9 +1,9 @@
 import Foundation
-import RenewCore
+import UptickCore
 
-// renew                 list every app with its installed and latest version
-// renew --updates       list only apps with an update
-// renew verify NAME...  download the update, read the app inside, and remember what it really is
+// uptick                 list every app with its installed and latest version
+// uptick --updates       list only apps with an update
+// uptick verify NAME...  download the update, read the app inside, and remember what it really is
 
 let arguments = Array(CommandLine.arguments.dropFirst())
 let apps = AppScanner.scan()
