@@ -21,7 +21,7 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp ".build/$CONFIG/UptickApp" "$APP/Contents/MacOS/Uptick"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
-cp -R Resources/*.lproj "$APP/Contents/Resources/"
+cp -R Resources/*.lproj Resources/AppIcon.icns "$APP/Contents/Resources/"
 
 # A stable signing identity keeps macOS permissions (App Management) across rebuilds.
 IDENTITY=$(security find-identity -v -p codesigning | grep -o '"Apple Development[^"]*"' | head -1 | tr -d '"')

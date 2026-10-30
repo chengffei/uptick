@@ -11,6 +11,8 @@
 	</array>
 	<key>CFBundleExecutable</key>
 	<string>Uptick</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.chengffei.uptick</string>
 	<key>CFBundleName</key>
