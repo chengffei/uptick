@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Uptick — Free, Open-Source App Updater for Mac</title>
+<meta name="description" content="Uptick finds updates for the Mac apps you already have, checks every download, and installs it in one click. A free, open-source successor to MacUpdater. Requires macOS 14.">
+<link rel="canonical" href="https://chengffei.github.io/uptick/">
+<link rel="alternate" type="text/plain" title="llms.txt" href="https://chengffei.github.io/uptick/llms.txt">
+<meta name="theme-color" content="#f5f5f7">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Uptick">
+<meta property="og:url" content="https://chengffei.github.io/uptick/">
+<meta property="og:title" content="Uptick — Free, Open-Source App Updater for Mac">
+<meta property="og:description" content="Every app, up to date. Uptick finds updates for the apps you already have, checks every download, and installs it in one click.">
+<meta property="og:image" content="https://chengffei.github.io/uptick/images/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Uptick app icon: a white U turning into a green arrow">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Uptick — Free, Open-Source App Updater for Mac">
+<meta name="twitter:description" content="Every app, up to date. Uptick finds updates for the apps you already have, checks every download, and installs it in one click.">
+<meta name="twitter:image" content="https://chengffei.github.io/uptick/images/og.png">
+<link rel="icon" type="image/png" sizes="64x64" href="images/favicon.png">
+<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Uptick",
+  "description": "A free, open-source Mac app updater. It finds updates for installed apps from the Mac App Store, Sparkle feeds, Electron update feeds and Homebrew Cask, verifies each download, and installs it.",
+  "applicationCategory": "UtilitiesApplication",
+  "applicationSubCategory": "Software updater",
+  "operatingSystem": "macOS 14 or later",
+  "softwareVersion": "0.2.0",
+  "dateModified": "2026-10-30",
+  "downloadUrl": "https://github.com/chengffei/uptick/releases/download/v0.2.0/Uptick-0.2.0.dmg",
+  "inLanguage": "en",
+  "url": "https://chengffei.github.io/uptick/",
+  "screenshot": "https://chengffei.github.io/uptick/images/app.png",
+  "image": "https://chengffei.github.io/uptick/images/icon.png",
+  "license": "https://www.gnu.org/licenses/gpl-3.0.html",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "author": { "@type": "Person", "name": "Felix", "url": "https://github.com/chengffei" },
+  "codeRepository": "https://github.com/chengffei/uptick"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "inLanguage": "en",
+  "mainEntity": [
+    { "@type": "Question", "name": "Is Uptick a replacement for MacUpdater?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. MacUpdater stopped development in January 2026. Uptick does the same job: it lists which of your apps have updates and installs them. It is free and open source." } },
+    { "@type": "Question", "name": "Where does Uptick get version information?",
+      "acceptedAnswer": { "@type": "Answer", "text": "From each app's own update channel: Apple's App Store lookup, the app's Sparkle feed, its Electron update feed, or Homebrew's public cask list. There is no Uptick server." } },
+    { "@type": "Question", "name": "Does Uptick collect any data?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. There is no account and no telemetry. Uptick only asks the update sources above for version numbers, downloads the updates you choose, and checks GitHub for new versions of itself." } },
+    { "@type": "Question", "name": "Why do App Store apps open the App Store?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Recent macOS versions no longer let other apps install App Store updates, so Uptick opens the app's page and the App Store does the update." } },
+    { "@type": "Question", "name": "What does Needs a Look mean?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The source numbers versions differently from the app, so Uptick is not sure the comparison is right. Verify downloads the update, reads its real version, and remembers it." } },
+    { "@type": "Question", "name": "Why does macOS say it can’t verify the developer?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Uptick is signed but not notarized by Apple. Install with the one-line command to avoid the prompt, or open the disk image version once and click Open Anyway in System Settings › Privacy & Security." } }
+  ]
+}
+</script>
+<style>
+  :root {
+    --paper: #f5f5f7;
+    --card: #ffffff;
+    --ink: #1d1d1f;
+    --muted: #6e6e73;
+    --line: rgba(0, 0, 0, .08);
+    --green: #248a3d;
+    --night: #1c1c26;
+    --radius: 18px;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 17px/1.6 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--green); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  img { max-width: 100%; height: auto; display: block; }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  nav {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(245, 245, 247, .82);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid var(--line);
+  }
+  nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 56px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--ink); }
+  .brand:hover { text-decoration: none; }
+  .brand img { width: 28px; height: 28px; }
+  .nav-links { display: flex; align-items: center; gap: 20px; font-size: 15px; }
+  .nav-links a { color: var(--ink); }
+
+  .hero { text-align: center; padding: 88px 24px 56px; }
+  .hero .icon { width: 144px; height: 144px; margin: 0 auto 24px; }
+  .narrow { max-width: 760px; }
+  .definition { font-size: 19px; line-height: 1.7; margin: 0; text-align: left; }
+  .eyebrow { margin: 0 0 14px; font-size: 15px; font-weight: 600; letter-spacing: .02em; color: var(--green); }
+  h1 {
+    font-size: clamp(40px, 7vw, 68px); line-height: 1.08; letter-spacing: -.02em;
+    margin: 0 0 18px; font-weight: 700;
+  }
+  .lead { font-size: clamp(18px, 2.4vw, 22px); color: var(--muted); margin: 0 auto 36px; max-width: 640px; }
+  .actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 13px 26px; border-radius: 999px; font-size: 17px; font-weight: 500;
+  }
+  .btn:hover { text-decoration: none; }
+  .btn-primary { background: var(--night); color: #fff; }
+  .btn-primary:hover { background: #000; }
+  .btn-secondary { color: var(--ink); border: 1px solid rgba(0,0,0,.15); }
+  .btn-secondary:hover { background: rgba(0,0,0,.03); }
+  .meta { margin-top: 16px; font-size: 14px; color: var(--muted); }
+
+  .window {
+    margin: 0 auto; max-width: 820px; border-radius: 14px; overflow: hidden; background: #fff;
+    box-shadow: 0 30px 80px rgba(20, 30, 60, .14), 0 0 0 1px rgba(0,0,0,.06);
+  }
+  .titlebar {
+    display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 18px;
+    background: #ececee; border-bottom: 1px solid var(--line); font-size: 14px;
+  }
+  .titlebar i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+  .titlebar i:nth-child(1) { background: #ff5f57; }
+  .titlebar i:nth-child(2) { background: #febc2e; }
+  .titlebar i:nth-child(3) { background: #28c840; }
+  .titlebar b { margin-left: 14px; font-weight: 600; }
+  .titlebar span { color: var(--muted); margin-left: 8px; }
+  .titlebar .tb { margin-left: auto; border: 1px solid rgba(0,0,0,.12); border-radius: 7px; padding: 3px 10px; background: #fff; }
+
+  section.wrap { padding-top: 112px; }
+  h2 {
+    font-size: clamp(30px, 4.4vw, 44px); line-height: 1.15; letter-spacing: -.015em;
+    margin: 0 0 14px; text-align: center; font-weight: 700;
+  }
+  .section-lead { text-align: center; color: var(--muted); margin: 0 auto 48px; max-width: 620px; font-size: 19px; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+  .card { background: var(--card); border-radius: var(--radius); padding: 28px; }
+  .card .glyph { width: 36px; height: 36px; color: var(--green); margin-bottom: 14px; }
+  .card h3 { margin: 0 0 6px; font-size: 19px; }
+  .card p { margin: 0; color: var(--muted); font-size: 15.5px; }
+
+  .steps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  .step { background: var(--card); border-radius: var(--radius); padding: 28px; }
+  .step h3 { margin: 0 0 6px; font-size: 18px; }
+  .step p { margin: 0 0 14px; color: var(--muted); font-size: 15.5px; }
+  .step p:last-child { margin-bottom: 0; }
+  .note { text-align: center; color: var(--muted); font-size: 14px; margin-top: 22px; }
+  pre {
+    margin: 0 0 14px; padding: 16px 18px; overflow-x: auto;
+    background: var(--paper); border-radius: 12px;
+    font: 13.5px/1.6 "SF Mono", Menlo, monospace; color: var(--ink);
+  }
+  section > pre { max-width: 640px; margin: 0 auto 28px; background: var(--card); }
+
+  .table-scroll { overflow-x: auto; }
+  table.compare { width: 100%; max-width: 1000px; margin: 0 auto; border-collapse: collapse; background: var(--card); border-radius: var(--radius); overflow: hidden; }
+  table.compare th { padding: 16px 18px; text-align: left; font-size: 15px; border-bottom: 1px solid var(--line); }
+  table.compare td { padding: 16px 18px; text-align: left; font-size: 15px; border-bottom: 1px solid var(--line); }
+  table.compare tr:last-child td { border-bottom: none; }
+  table.compare td:first-child { color: var(--muted); }
+  table.compare th:nth-child(2), table.compare td:nth-child(2) { background: rgba(36, 138, 61, .07); font-weight: 600; }
+
+  .faq { max-width: 760px; margin: 0 auto; }
+  .faq details { background: var(--card); border-radius: 14px; padding: 18px 24px; margin-bottom: 12px; }
+  .faq summary { cursor: pointer; font-weight: 600; font-size: 17px; list-style: none; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: "+"; float: right; color: var(--muted); font-weight: 400; }
+  .faq details[open] summary::after { content: "–"; }
+  .faq p { margin: 10px 0 0; color: var(--muted); font-size: 16px; }
+
+  footer.wrap { padding-top: 96px; padding-bottom: 56px; text-align: center; color: var(--muted); font-size: 14px; }
+  footer p { margin: 6px 0; }
+
+  @media (max-width: 820px) {
+    .grid, .steps { grid-template-columns: minmax(0, 1fr); }
+    .hero { padding: 56px 24px 40px; }
+    section.wrap { padding-top: 80px; }
+    .nav-links .hide-sm { display: none; }
+    .titlebar span, .titlebar .tb { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#"><img src="images/favicon.png" width="28" height="28" alt="">Uptick</a>
+    <div class="nav-links">
+      <a class="hide-sm" href="#features">Features</a>
+      <a class="hide-sm" href="#compare">Compare</a>
+      <a class="hide-sm" href="#install">Install</a>
+      <a href="https://github.com/chengffei/uptick">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero wrap">
+  <img class="icon" src="images/icon-256.png" width="144" height="144" alt="Uptick app icon">
+  <p class="eyebrow">Free app updater for Mac · The successor to MacUpdater</p>
+  <h1>Every app.<br>Up to date.</h1>
+  <p class="lead">
+    Uptick finds updates for the apps you already have, checks every download, and installs it in one click.
+  </p>
+  <div class="actions">
+    <a class="btn btn-primary" href="#install">Get Uptick</a>
+    <a class="btn btn-secondary" href="https://github.com/chengffei/uptick">View on GitHub</a>
+  </div>
+  <p class="meta">
+    Free &amp; open source · No account, no telemetry · macOS 14 or later · Version 0.2.0
+  </p>
+</header>
+
+<div class="wrap">
+  <div class="window">
+    <div class="titlebar"><i></i><i></i><i></i><b>Uptick</b><span>Last checked 16:30</span><span class="tb">Update All</span></div>
+    <img src="images/app.png" width="1560" height="1456" alt="Uptick window listing apps with updates, each with installed and latest version and an Update or Open App Store button, followed by apps that are up to date" loading="eager">
+  </div>
+</div>
+
+<section id="about" class="wrap narrow">
+  <h2>What is Uptick?</h2>
+  <p class="definition">
+    Uptick is a free, open-source app updater for Mac. It reads the version of every app in your Applications folder, asks each app’s own update channel for the latest release, and lists what is out of date. Press Update and Uptick downloads the new version, checks that it is the same app from the same developer with a valid signature, and swaps it in. The old copy goes to the Trash. It is a native SwiftUI app for Apple silicon and Intel, and a successor to MacUpdater, which stopped development in January 2026.
+  </p>
+</section>
+
+<section id="features" class="wrap">
+  <h2>Checked before it’s installed.</h2>
+  <p class="section-lead">
+    An updater replaces your apps. It should be careful.
+  </p>
+  <div class="grid">
+    <div class="card">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7z"/><path d="M9 12l2 2 4-4"/></svg>
+      <h3>Same app, same developer.</h3>
+      <p>Every download must carry the installed app’s bundle ID, its developer’s team ID and a valid signature. Otherwise Uptick stops.</p>
+    </div>
+    <div class="card">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/></svg>
+      <h3>Old version in the Trash.</h3>
+      <p>Uptick never deletes. If copying the new version fails, it puts the old one back.</p>
+    </div>
+    <div class="card">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/><path d="M11 8v3l2 1"/></svg>
+      <h3>Fewer false alarms.</h3>
+      <p>When a source numbers versions differently from the app, Uptick says so. Verify reads the real version once and remembers it.</p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <h2>Four sources. No Uptick server.</h2>
+  <p class="section-lead">
+    Version numbers come straight from each app’s own update channel.
+  </p>
+  <div class="grid">
+    <div class="card">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 15l3-7 3 7M10 13h4"/></svg>
+      <h3>Mac App Store</h3>
+      <p>Apple’s lookup service, using the Mac record rather than the iPhone one. The App Store installs the update.</p>
+    </div>
+    <div class="card">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M6 18l2.5-2.5M15.5 8.5L18 6"/></svg>
+      <h3>Sparkle</h3>
+      <p>The appcast most independent Mac apps publish, compared by build number exactly as Sparkle does.</p>
+    </div>
+    <div class="card">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><ellipse cx="12" cy="12" rx="9" ry="3.5"/><ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(120 12 12)"/></svg>
+      <h3>Electron</h3>
+      <p>The update feed Electron apps declare inside their bundle, picking the download for your Mac’s chip.</p>
+    </div>
+    <div class="card">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9h12l-1 11H7z"/><path d="M9 9V7a3 3 0 0 1 6 0v2"/></svg>
+      <h3>Homebrew Cask</h3>
+      <p>Homebrew’s public list of over 7,000 apps, for everything else. No Homebrew install needed.</p>
+    </div>
+    <div class="card">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg>
+      <h3>Knows when to relaunch</h3>
+      <p>Apps like Chrome update themselves on disk. Uptick notices when the running copy is older and offers a relaunch.</p>
+    </div>
+    <div class="card">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10l3 2-3 2M12 14h5"/></svg>
+      <h3>Also on the command line</h3>
+      <p>The same engine as a CLI: list updates, verify one, or install it from Terminal.</p>
+    </div>
+  </div>
+</section>
+
+<section id="compare" class="wrap">
+  <h2>Uptick vs Latest and MacUpdater</h2>
+  <p class="section-lead">
+    MacUpdater has stopped. Latest is free, but its last stable release was in June 2025. Uptick is free, open and active.
+  </p>
+  <div class="table-scroll">
+  <table class="compare">
+    <thead><tr><th></th><th>Uptick</th><th>Latest</th><th>MacUpdater</th></tr></thead>
+    <tbody>
+      <tr><td>Price</td><td>Free · GPL-3.0</td><td>Free · GPL-3.0</td><td>Paid</td></tr>
+      <tr><td>Status</td><td>Active</td><td>Last stable release 0.11, June 2025; 0.12 beta, February 2026</td><td>Development stopped, January 2026</td></tr>
+      <tr><td>Update sources</td><td>App Store, Sparkle, Electron, Homebrew</td><td>App Store, Sparkle, Homebrew</td><td>Its own database</td></tr>
+      <tr><td>Checks downloads before installing</td><td>Bundle ID, team ID, signature</td><td>Not stated</td><td>Not stated</td></tr>
+      <tr><td>Command line</td><td>Yes</td><td>Requested, not built</td><td>Not stated</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">Checked on 30 October 2026 against the <a href="https://github.com/mangerlahn/Latest">Latest repository and releases</a> and <a href="https://tidbits.com/2026/01/09/macupdater-shuts-down-leaving-users-searching-for-alternatives/">TidBITS on MacUpdater’s shutdown</a>.</p>
+</section>
+
+<section id="install" class="wrap">
+  <h2>Install</h2>
+  <p class="section-lead">
+    Uptick isn’t notarized by Apple. The one-line install avoids the warning.
+  </p>
+  <div class="steps">
+    <div class="step">
+      <h3>One line in Terminal</h3>
+      <pre>curl -fsSL https://raw.githubusercontent.com/chengffei/uptick/main/install.sh | bash</pre>
+      <p>The <a href="https://github.com/chengffei/uptick/blob/main/install.sh">script</a> downloads the latest release, checks its checksum, signature, bundle ID and developer, then puts Uptick in Applications and opens it.</p>
+    </div>
+    <div class="step">
+      <h3>Or the disk image</h3>
+      <p>Download <a href="https://github.com/chengffei/uptick/releases/download/v0.2.0/Uptick-0.2.0.dmg">Uptick-0.2.0.dmg</a> and drag Uptick into Applications.</p>
+      <p>On first launch, close the warning, then click Open Anyway in System Settings › Privacy &amp; Security.</p>
+    </div>
+  </div>
+  <p class="note">Requires macOS 14 or later. After that, Uptick updates itself.</p>
+</section>
+
+<section id="build" class="wrap">
+  <h2>Build from source</h2>
+  <p class="section-lead">
+    Xcode 26 or later. One script builds, signs and opens the app.
+  </p>
+<pre>git clone https://github.com/chengffei/uptick.git
+cd uptick
+scripts/bundle.sh --open</pre>
+</section>
+
+<section id="faq" class="wrap">
+  <h2>FAQ</h2>
+  <p class="section-lead">Common questions about Uptick.</p>
+  <div class="faq">
+    <details><summary>Is Uptick a replacement for MacUpdater?</summary><p>Yes. MacUpdater stopped development in January 2026. Uptick does the same job: it lists which of your apps have updates and installs them. It is free and open source.</p></details>
+    <details><summary>Where does Uptick get version information?</summary><p>From each app’s own update channel: Apple’s App Store lookup, the app’s Sparkle feed, its Electron update feed, or Homebrew’s public cask list. There is no Uptick server.</p></details>
+    <details><summary>Does Uptick collect any data?</summary><p>No. There is no account and no telemetry. Uptick only asks the update sources above for version numbers, downloads the updates you choose, and checks GitHub for new versions of itself.</p></details>
+    <details><summary>Why do App Store apps open the App Store?</summary><p>Recent macOS versions no longer let other apps install App Store updates, so Uptick opens the app’s page and the App Store does the update.</p></details>
+    <details><summary>What does Needs a Look mean?</summary><p>The source numbers versions differently from the app, so Uptick is not sure the comparison is right. Verify downloads the update, reads its real version, and remembers it.</p></details>
+    <details><summary>Why does macOS say it can’t verify the developer?</summary><p>Uptick is signed but not notarized by Apple. Install with the one-line command to avoid the prompt, or open the disk image version once and click Open Anyway in System Settings › Privacy &amp; Security.</p></details>
+  </div>
+</section>
+
+<footer class="wrap">
+  <p>Uptick is open source under the GPL-3.0 License</p>
+  <p><a href="https://github.com/chengffei/uptick">github.com/chengffei/uptick</a></p>
+  <p>Made by <a href="https://github.com/chengffei">Felix</a> · Version 0.2.0 · Last updated <time datetime="2026-10-30">30 October 2026</time></p>
+</footer>
+
+</body>
+</html>

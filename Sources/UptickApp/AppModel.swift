@@ -32,6 +32,13 @@ final class AppModel {
     private(set) var selfUpdate: CheckResult?
     private(set) var selfUpdateJob: Job?
 
+    /// Snapshot helper: keep only these app names, so website screenshots show familiar apps.
+    func keepOnly(_ names: Set<String>) {
+        results = results.filter { names.contains($0.app.name) }
+        awaitingRelaunch = []
+        selfUpdate = nil
+    }
+
     func items(in group: Group) -> [CheckResult] {
         results.filter { result in
             guard result.status != .system, result.app.bundleID != Bundle.main.bundleIdentifier else { return false }

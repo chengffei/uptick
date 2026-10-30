@@ -61,8 +61,13 @@ enum Snapshot {
             } else {
                 await model.refresh()
             }
+            // UPTICK_SNAPSHOT_APPS="A,B,C" limits the list (for website screenshots).
+            if let names = ProcessInfo.processInfo.environment["UPTICK_SNAPSHOT_APPS"] {
+                model.keepOnly(Set(names.split(separator: ",").map(String.init)))
+            }
+            let size = ProcessInfo.processInfo.environment["UPTICK_SNAPSHOT_SIZE"]?.split(separator: "x").compactMap { Double($0) }
             let host = NSHostingView(rootView: ContentView().environment(model))
-            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 720, height: 900),
+            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: size?.first ?? 720, height: size?.last ?? 900),
                                   styleMask: [.titled], backing: .buffered, defer: false)
             window.appearance = NSAppearance(named: .aqua)
             window.contentView = host

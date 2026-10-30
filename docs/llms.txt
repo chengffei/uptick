@@ -1,0 +1,25 @@
+# Uptick
+
+> Uptick is a free, open-source app updater for macOS and a successor to MacUpdater, which stopped development in January 2026. It finds updates for installed apps, verifies each download, and installs it. Requires macOS 14 or later. GPL-3.0 License.
+
+Uptick reads the version of every app in /Applications and ~/Applications and asks each app's own update channel for the latest release. There is no Uptick server, no account and no telemetry. It is a native SwiftUI app built with Swift Package Manager, shipped as a universal binary, with a command-line tool on the same engine.
+
+## Key facts
+
+- Sources: Mac App Store lookup (Mac record, not the iPhone one), Sparkle appcasts (compared by build number), Electron update feeds (latest-mac.yml, chip-specific download), Homebrew's public cask list
+- Uncertain results: when a source numbers versions differently from the app, the app is listed under Needs a Look; Verify downloads the package, reads its real version and remembers it
+- Installing: downloads the update, requires the same bundle ID, the same developer team ID and a valid signature, quits the app, moves the old copy to the Trash and copies the new one in; restores the old copy if copying fails
+- App Store apps: Uptick opens the App Store page; macOS no longer lets other apps install App Store updates
+- .pkg installers: saved to Downloads and opened in Installer
+- Relaunch: detects apps updated on disk whose running copy is older (for example Chrome) and offers to relaunch
+- Self-update: checks GitHub releases and offers Update and Relaunch
+- Network: the update sources above and GitHub; nothing else
+- Install: one-line script (curl -fsSL https://raw.githubusercontent.com/chengffei/uptick/main/install.sh | bash) or a disk image; signed but not notarized
+- Languages: English and Simplified Chinese
+- Price: free; source code under GPL-3.0
+
+## Links
+
+- Website: https://chengffei.github.io/uptick/
+- Source code: https://github.com/chengffei/uptick
+- Releases: https://github.com/chengffei/uptick/releases
