@@ -18,10 +18,10 @@ public struct CheckResult: Sendable {
     }
 
     public let app: InstalledApp
-    public let status: Status
+    public internal(set) var status: Status
     public let source: UpdateSource?
     public let latest: String?
-    public let downloadURL: URL?
+    public internal(set) var downloadURL: URL?
     /// False when the answer rests on data known to be shaky: an App Store record shared with the
     /// iPhone app, or installed and latest versions that disagree on the major number.
     public var confident: Bool = true
@@ -31,12 +31,15 @@ public struct Checker {
     public var session: URLSession
     public var country: String
     public var cacheDirectory: URL
+    public var learned: LearnedVersions
 
     public init(session: URLSession = .shared,
                 country: String = Locale.current.region?.identifier.lowercased() ?? "us",
                 cacheDirectory: URL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
-                    .appendingPathComponent("Renew")) {
+                    .appendingPathComponent("Renew"),
+                learned: LearnedVersions = .load()) {
         self.session = session
+        self.learned = learned
         self.country = country
         self.cacheDirectory = cacheDirectory
     }
@@ -52,7 +55,7 @@ public struct Checker {
                 group.addTask { (i, await check(app, store: store, casks: index)) }
             }
             var results = [CheckResult?](repeating: nil, count: apps.count)
-            for await (i, result) in group { results[i] = result }
+            for await (i, result) in group { results[i] = learned.apply(to: result) }
             return results.compactMap { $0 }
         }
     }
@@ -84,8 +87,10 @@ public struct Checker {
                                source: .sparkle, latest: display, downloadURL: item.downloadURL,
                                confident: sameMajor(app.version, display))
         }
-        if let feed = app.electronFeed, let latest = await electronVersion(feed) {
-            return compare(app, latest: latest, source: .electron)
+        if let feed = app.electronFeed, let (latest, download) = await electronRelease(feed) {
+            var result = compare(app, latest: latest, source: .electron)
+            result.downloadURL = download
+            return result
         }
         if let cask = casks?.cask(for: app), let parts = CaskIndex.comparableVersions(cask.version) {
             // Any part matching the installed version or build means we already have it.
@@ -154,16 +159,20 @@ public struct Checker {
         }
     }
 
-    func electronVersion(_ feed: ElectronFeed) async -> String? {
+    func electronRelease(_ feed: ElectronFeed) async -> (version: String, download: URL?)? {
         switch feed {
         case .generic(let base):
             guard let data = try? await fetch(base.appendingPathComponent("latest-mac.yml")),
                   let text = String(data: data, encoding: .utf8) else { return nil }
-            return SimpleYAML.fields(text)["version"]
+            let fields = SimpleYAML.fields(text)
+            guard let version = fields["version"] else { return nil }
+            let download = fields["path"].flatMap { URL(string: $0, relativeTo: base.appendingPathComponent("")) }
+            return (version, download?.absoluteURL)
         case .github(let owner, let repo):
             guard let data = try? await fetch(URL(string: "https://api.github.com/repos/\(owner)/\(repo)/releases/latest")!),
-                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
-            return json["tag_name"] as? String
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let tag = json["tag_name"] as? String else { return nil }
+            return (tag, nil)
         }
     }
 

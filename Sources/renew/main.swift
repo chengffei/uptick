@@ -1,12 +1,49 @@
 import Foundation
 import RenewCore
 
-// renew            list every app with its installed and latest version
-// renew --updates  list only apps with an update
+// renew                 list every app with its installed and latest version
+// renew --updates       list only apps with an update
+// renew verify NAME...  download the update, read the app inside, and remember what it really is
 
-let onlyUpdates = CommandLine.arguments.contains("--updates")
+let arguments = Array(CommandLine.arguments.dropFirst())
 let apps = AppScanner.scan()
 let results = await Checker().check(apps)
+
+if arguments.first == "verify" {
+    var learned = LearnedVersions.load()
+    for name in arguments.dropFirst() {
+        guard let result = results.first(where: { $0.app.name.localizedCaseInsensitiveCompare(name) == .orderedSame }) else {
+            print("\(name): not installed"); continue
+        }
+        guard let url = result.downloadURL, let advertised = result.latest else {
+            print("\(name): no download known (\(result.source?.rawValue ?? "no source"))"); continue
+        }
+        print("\(name): downloading \(url.absoluteString)")
+        do {
+            let package = try await PackageInspector.inspect(url)
+            let installedTeam = PackageInspector.teamID(of: result.app.url)
+            guard package.bundleID == result.app.bundleID else {
+                print("  package holds \(package.bundleID), not \(result.app.bundleID); wrong match, nothing recorded"); continue
+            }
+            guard installedTeam == nil || package.teamID == installedTeam else {
+                print("  signed by \(package.teamID ?? "nobody"), installed app by \(installedTeam!); nothing recorded"); continue
+            }
+            learned.record(bundleID: package.bundleID, advertised: advertised,
+                           contains: .init(version: package.version, build: package.build))
+            let verdict = Version(result.app.version) < Version(package.version)
+                || (Version(result.app.version) == Version(package.version)
+                    && Version(result.app.build ?? "") < Version(package.build ?? ""))
+            print("  \(result.source!.rawValue) says \(advertised); package is \(package.version) (\(package.build ?? "-")),"
+                  + " installed \(result.app.version) (\(result.app.build ?? "-")) → \(verdict ? "real update" : "not newer")")
+        } catch {
+            print("  failed: \(error)")
+        }
+    }
+    try learned.save()
+    exit(0)
+}
+
+let onlyUpdates = arguments.contains("--updates")
 
 func pad(_ s: String, _ width: Int) -> String {
     // CJK characters take two columns in a terminal.

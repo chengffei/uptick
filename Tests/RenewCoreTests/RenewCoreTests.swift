@@ -103,3 +103,46 @@ final class CaskTests: XCTestCase {
         XCTAssertEqual(CaskIndex.comparableVersions("2.0,200"), ["2.0", "200"])
     }
 }
+
+final class LearnedTests: XCTestCase {
+    func result(version: String, build: String?, latest: String) -> CheckResult {
+        let app = InstalledApp(url: URL(fileURLWithPath: "/Applications/Lark.app"), name: "Lark", bundleID: "com.lark",
+                               version: version, build: build, kind: .mac, isAppStore: false, appStoreItemID: nil,
+                               sparkleFeed: nil, electronFeed: nil)
+        return CheckResult(app: app, status: .upToDate, source: .homebrew, latest: latest, downloadURL: nil, confident: false)
+    }
+
+    func testLearnedVersionOverridesSchemeMismatch() {
+        var learned = LearnedVersions()
+        learned.record(bundleID: "com.lark", advertised: "8.3.14", contains: .init(version: "147.0.7727.160", build: nil))
+        let fixed = learned.apply(to: result(version: "147.0.7727.149", build: nil, latest: "8.3.14"))
+        XCTAssertEqual(fixed.status, .updateAvailable)
+        XCTAssertTrue(fixed.confident)
+    }
+
+    func testSameVersionComparesBuild() {
+        var learned = LearnedVersions()
+        learned.record(bundleID: "com.lark", advertised: "8.3.14", contains: .init(version: "2.0", build: "120"))
+        XCTAssertEqual(learned.apply(to: result(version: "2.0", build: "120", latest: "8.3.14")).status, .upToDate)
+        XCTAssertEqual(learned.apply(to: result(version: "2.0", build: "110", latest: "8.3.14")).status, .updateAvailable)
+    }
+
+    func testStaleSourceBecomesUnknown() {
+        var learned = LearnedVersions()
+        learned.record(bundleID: "com.lark", advertised: "3.7.1", contains: .init(version: "3.7.1", build: nil))
+        XCTAssertEqual(learned.apply(to: result(version: "4.8.10", build: nil, latest: "3.7.1")).status, .unknown)
+    }
+
+    func testUnknownAdvertisedVersionLeftAlone() {
+        let learned = LearnedVersions()
+        XCTAssertFalse(learned.apply(to: result(version: "1", build: nil, latest: "2")).confident)
+    }
+}
+
+final class FormatTests: XCTestCase {
+    func testZipMagic() throws {
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent("renew-test.zip")
+        try Data([0x50, 0x4B, 0x03, 0x04, 0, 0]).write(to: file)
+        XCTAssertEqual(try PackageInspector.format(of: file), "zip")
+    }
+}
