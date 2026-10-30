@@ -13,6 +13,9 @@ let package = Package(
     targets: [
         .target(name: "UptickCore", path: "Sources/UptickCore"),
         .executableTarget(name: "uptick", dependencies: ["UptickCore"], path: "Sources/uptick"),
+        // Bundled as Uptick.app by scripts/bundle.sh. A different binary name than the CLI,
+        // since "Uptick" and "uptick" collide on a case-insensitive disk.
+        .executableTarget(name: "UptickApp", dependencies: ["UptickCore"], path: "Sources/UptickApp"),
         .testTarget(name: "UptickCoreTests", dependencies: ["UptickCore"], path: "Tests/UptickCoreTests")
     ]
 )

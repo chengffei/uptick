@@ -2,7 +2,7 @@
 
 A free, open-source way to see which of your Mac apps have updates, as a successor to MacUpdater.
 
-> **Status: early.** Uptick is a command-line tool for now. It finds updates and verifies them; it does not install them yet. A native app is planned.
+> **Status: early.** No release yet; build it from source. The app finds updates, verifies uncertain ones, and installs them. English and Simplified Chinese.
 
 ## How it works
 
@@ -15,15 +15,28 @@ Uptick reads the version of every app in `/Applications` and `~/Applications`, t
 
 When a source uses a different numbering than the app (Homebrew says `8.3.14`, the app says `147.0.7727.149`), the result is marked for review instead of reported as an update. `uptick verify` then downloads the package, reads the app inside, checks that it comes from the same developer, and remembers the real version so the question never comes up again.
 
-## Usage
+## Installing updates
+
+Pressing **Update** downloads the package, checks it holds the same app signed by the same developer with a valid signature, quits the app if it is running, moves the old copy to the Trash, and puts the new one in its place. Mac App Store apps open their App Store page instead, because macOS no longer lets other apps install App Store updates. Packages that ship as a `.pkg` are saved to Downloads and opened in Installer.
+
+macOS may ask you to allow Uptick under **Privacy & Security › App Management** the first time it replaces an app.
+
+## Building
 
 Requires macOS 14 or later and Xcode.
+
+```sh
+scripts/bundle.sh --open         # builds and opens build/Uptick.app
+```
+
+The same engine is available on the command line:
 
 ```sh
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift build
 .build/debug/uptick              # every app with installed and latest version
 .build/debug/uptick --updates    # only apps with an update
 .build/debug/uptick verify Lark  # download the update and confirm what it really is
+.build/debug/uptick install Lark # install it
 ```
 
 ## Contributing

@@ -4,9 +4,16 @@ import UptickCore
 // uptick                 list every app with its installed and latest version
 // uptick --updates       list only apps with an update
 // uptick verify NAME...  download the update, read the app inside, and remember what it really is
+// uptick install NAME... install the update (old version goes to the Trash)
+// --folder PATH          scan PATH instead of /Applications and ~/Applications
 
-let arguments = Array(CommandLine.arguments.dropFirst())
-let apps = AppScanner.scan()
+var arguments = Array(CommandLine.arguments.dropFirst())
+var folders = AppScanner.defaultFolders
+if let i = arguments.firstIndex(of: "--folder"), i + 1 < arguments.count {
+    folders = [URL(fileURLWithPath: arguments[i + 1])]
+    arguments.removeSubrange(i...(i + 1))
+}
+let apps = AppScanner.scan(folders: folders)
 let results = await Checker().check(apps)
 
 if arguments.first == "verify" {
@@ -37,6 +44,31 @@ if arguments.first == "verify" {
                   + " installed \(result.app.version) (\(result.app.build ?? "-")) → \(verdict ? "real update" : "not newer")")
         } catch {
             print("  failed: \(error)")
+        }
+    }
+    try learned.save()
+    exit(0)
+}
+
+if arguments.first == "install" {
+    var learned = LearnedVersions.load()
+    for name in arguments.dropFirst() {
+        guard let result = results.first(where: { $0.app.name.localizedCaseInsensitiveCompare(name) == .orderedSame }) else {
+            print("\(name): not installed"); continue
+        }
+        do {
+            switch try await Installer.run(result) {
+            case .installed(let info):
+                print("\(name): installed \(info.version) (\(info.build ?? "-"))")
+                if let latest = result.latest { learned.record(bundleID: info.bundleID, advertised: latest, contains: .init(version: info.version, build: info.build)) }
+            case .notNewer(let info):
+                print("\(name): package is \(info.version), not newer; nothing changed")
+                if let latest = result.latest { learned.record(bundleID: info.bundleID, advertised: latest, contains: .init(version: info.version, build: info.build)) }
+            case .openedInstaller(let file):
+                print("\(name): opened installer \(file.path)")
+            }
+        } catch {
+            print("\(name): \(error.localizedDescription)")
         }
     }
     try learned.save()

@@ -22,6 +22,8 @@ public struct CheckResult: Sendable {
     public let source: UpdateSource?
     public let latest: String?
     public internal(set) var downloadURL: URL?
+    /// App Store product page, for apps the App Store updates itself.
+    public internal(set) var storePage: URL? = nil
     /// False when the answer rests on data known to be shaky: an App Store record shared with the
     /// iPhone app, or installed and latest versions that disagree on the major number.
     public var confident: Bool = true
@@ -70,7 +72,9 @@ public struct Checker {
         if app.isAppStore, let record = store[app.bundleID] {
             // Only the desktopSoftware entity is reliable for Mac apps; the macSoftware fallback can
             // return the iPhone version of a universal purchase (百度网盘 8.9.7 vs 13.36.0).
-            return compare(app, latest: record.version, source: .appStore, trusted: app.kind == .iosWrapper || record.desktop)
+            var result = compare(app, latest: record.version, source: .appStore, trusted: app.kind == .iosWrapper || record.desktop)
+            result.storePage = record.page
+            return result
         }
         if let feed = app.sparkleFeed,
            let data = try? await fetch(feed),
@@ -124,6 +128,7 @@ public struct Checker {
         let version: String
         /// Found through entity=desktopSoftware, which returns the Mac build's metadata.
         let desktop: Bool
+        let page: URL?
     }
 
     /// Batched lookups per store region, local region first, then the US store for apps it lacks.
@@ -154,7 +159,8 @@ public struct Checker {
               let results = json["results"] as? [[String: Any]] else { return }
         for result in results {
             if let id = result["bundleId"] as? String, let version = result["version"] as? String, found[id] == nil {
-                found[id] = StoreRecord(version: version, desktop: desktop)
+                found[id] = StoreRecord(version: version, desktop: desktop,
+                                        page: (result["trackViewUrl"] as? String).flatMap(URL.init(string:)))
             }
         }
     }

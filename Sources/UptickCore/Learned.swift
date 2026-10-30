@@ -40,7 +40,7 @@ public struct LearnedVersions: Codable, Sendable {
     }
 
     /// Re-decides a result with the real package version when this advertised version was inspected before.
-    func apply(to result: CheckResult) -> CheckResult {
+    public func apply(to result: CheckResult) -> CheckResult {
         guard let latest = result.latest, let entry = entries[result.app.bundleID]?[latest] else { return result }
         var updated = result
         updated.confident = true

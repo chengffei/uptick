@@ -23,33 +23,77 @@ public enum InspectError: Error, CustomStringConvertible {
     }
 }
 
+/// An unpacked update: the app inside a zip or a mounted dmg. Call `close()` when done.
+public final class PreparedPackage {
+    public let app: URL
+    public let info: InspectedApp
+    let work: URL
+    let mount: URL?
+
+    init(app: URL, info: InspectedApp, work: URL, mount: URL?) {
+        self.app = app
+        self.info = info
+        self.work = work
+        self.mount = mount
+    }
+
+    public func close() {
+        if let mount { try? PackageInspector.run("/usr/bin/hdiutil", ["detach", "-force", mount.path]) }
+        try? FileManager.default.removeItem(at: work)
+    }
+}
+
 /// Downloads an update package (zip or dmg), finds the app inside, and reads its identity.
-/// Nothing is installed; the temporary copy is removed afterwards.
 public enum PackageInspector {
+    /// Reads what an update contains without installing anything.
     public static func inspect(_ url: URL, session: URLSession = .shared) async throws -> InspectedApp {
+        let file = try await download(url, session: session)
+        let package = try prepare(file)
+        defer { package.close() }
+        return package.info
+    }
+
+    /// Downloads into a fresh temporary folder and returns the file. The folder belongs to the caller.
+    public static func download(_ url: URL, session: URLSession = .shared) async throws -> URL {
         let work = FileManager.default.temporaryDirectory.appendingPathComponent("uptick-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: work, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: work) }
-
         var request = URLRequest(url: url, timeoutInterval: 120)
         request.setValue("Uptick", forHTTPHeaderField: "User-Agent")
         let (downloaded, _) = try await session.download(for: request)
-        let package = work.appendingPathComponent("package")
-        try FileManager.default.moveItem(at: downloaded, to: package)
+        let file = work.appendingPathComponent("package")
+        try FileManager.default.moveItem(at: downloaded, to: file)
+        return file
+    }
 
-        switch try format(of: package) {
-        case "zip":
-            let out = work.appendingPathComponent("unzipped")
-            try run("/usr/bin/ditto", ["-x", "-k", package.path, out.path])
-            return try read(findApp(in: out))
-        case "dmg":
-            let mount = work.appendingPathComponent("mount")
-            try run("/usr/bin/hdiutil", ["attach", "-nobrowse", "-readonly", "-noverify", "-noautoopen",
-                                         "-mountpoint", mount.path, package.path])
-            defer { try? run("/usr/bin/hdiutil", ["detach", "-force", mount.path]) }
-            return try read(findApp(in: mount))
-        case let other:
-            throw InspectError.unsupportedFormat(other)
+    /// Unpacks a downloaded zip or dmg. Throws `unsupportedFormat` for anything else (e.g. pkg).
+    public static func prepare(_ file: URL) throws -> PreparedPackage {
+        let work = file.deletingLastPathComponent()
+        do {
+            switch try format(of: file) {
+            case "zip":
+                let out = work.appendingPathComponent("unzipped")
+                try run("/usr/bin/ditto", ["-x", "-k", file.path, out.path])
+                let app = try findApp(in: out)
+                return PreparedPackage(app: app, info: try read(app), work: work, mount: nil)
+            case "dmg":
+                let mount = work.appendingPathComponent("mount")
+                try run("/usr/bin/hdiutil", ["attach", "-nobrowse", "-readonly", "-noverify", "-noautoopen",
+                                             "-mountpoint", mount.path, file.path])
+                do {
+                    let app = try findApp(in: mount)
+                    return PreparedPackage(app: app, info: try read(app), work: work, mount: mount)
+                } catch {
+                    try? run("/usr/bin/hdiutil", ["detach", "-force", mount.path])
+                    throw error
+                }
+            case let other:
+                throw InspectError.unsupportedFormat(other)
+            }
+        } catch InspectError.unsupportedFormat(let format) {
+            throw InspectError.unsupportedFormat(format)   // keep the download for the caller
+        } catch {
+            try? FileManager.default.removeItem(at: work)
+            throw error
         }
     }
 
