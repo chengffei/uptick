@@ -6,6 +6,9 @@
 <title>Uptick — Free, Open-Source App Updater for Mac</title>
 <meta name="description" content="Uptick finds updates for the Mac apps you already have, checks every download, and installs it in one click. A free, open-source successor to MacUpdater. Requires macOS 14.">
 <link rel="canonical" href="https://chengffei.github.io/uptick/">
+<link rel="alternate" hreflang="en" href="https://chengffei.github.io/uptick/">
+<link rel="alternate" hreflang="zh-Hans" href="https://chengffei.github.io/uptick/zh/">
+<link rel="alternate" hreflang="x-default" href="https://chengffei.github.io/uptick/">
 <link rel="alternate" type="text/plain" title="llms.txt" href="https://chengffei.github.io/uptick/llms.txt">
 <meta name="theme-color" content="#f5f5f7">
 <meta property="og:type" content="website">
@@ -68,6 +71,26 @@
   ]
 }
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to install Uptick on a Mac",
+  "inLanguage": "en",
+  "step": [
+    {
+      "@type": "HowToStep",
+      "name": "One line in Terminal",
+      "text": "curl -fsSL https://raw.githubusercontent.com/chengffei/uptick/main/install.sh | bash The script downloads the latest release, checks its checksum, signature, bundle ID and developer, then puts Uptick in Applications and opens it."
+    },
+    {
+      "@type": "HowToStep",
+      "name": "Or the disk image",
+      "text": "Download Uptick-0.2.0.dmg and drag Uptick into Applications. On first launch, close the warning, then click Open Anyway in System Settings › Privacy & Security."
+    }
+  ]
+}
+</script>
 <style>
   :root {
     --paper: #f5f5f7;
@@ -109,6 +132,13 @@
   .nav-links { display: flex; align-items: center; gap: 20px; font-size: 15px; }
   .nav-links a { color: var(--ink); }
 
+  .lang-toggle {
+    display: inline-block; text-decoration: none;
+    font: inherit; font-size: 13px; color: var(--muted);
+    background: none; border: 1px solid var(--line); border-radius: 999px;
+    padding: 4px 12px; cursor: pointer;
+  }
+  .lang-toggle:hover { color: var(--ink); border-color: rgba(0,0,0,.18); text-decoration: none; }
   .hero { text-align: center; padding: 88px 24px 56px; }
   .hero .icon { width: 144px; height: 144px; margin: 0 auto 24px; }
   .narrow { max-width: 760px; }
@@ -211,9 +241,12 @@
       <a class="hide-sm" href="#compare">Compare</a>
       <a class="hide-sm" href="#install">Install</a>
       <a href="https://github.com/chengffei/uptick">GitHub</a>
+      <a class="lang-toggle" href="zh/" hreflang="zh-Hans" lang="zh-Hans">中文</a>
     </div>
   </div>
 </nav>
+
+<main>
 
 <header class="hero wrap">
   <img class="icon" src="images/icon-256.png" width="144" height="144" alt="Uptick app icon">
@@ -371,7 +404,10 @@ scripts/bundle.sh --open</pre>
   </div>
 </section>
 
+</main>
+
 <footer class="wrap">
+  <p class="more-apps">More free, open-source Mac apps by Felix: <a href="../clip/">Clip</a> (screenshots, recording and OCR) and <a href="../leaf/">Leaf</a> (a Kindle-style ebook reader)</p>
   <p>Uptick is open source under the GPL-3.0 License</p>
   <p><a href="https://github.com/chengffei/uptick">github.com/chengffei/uptick</a></p>
   <p>Made by <a href="https://github.com/chengffei">Felix</a> · Version 0.2.0 · Last updated <time datetime="2026-10-30">30 October 2026</time></p>

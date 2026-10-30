@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Uptick：免费开源的 Mac 应用更新工具，MacUpdater 替代</title>
+<meta name="description" content="Uptick 帮你找出 Mac 上已装 app 的更新，逐个核对下载包，一键安装。免费开源，MacUpdater 停更后的替代。需要 macOS 14。">
+<link rel="canonical" href="https://chengffei.github.io/uptick/zh/">
+<link rel="alternate" hreflang="en" href="https://chengffei.github.io/uptick/">
+<link rel="alternate" hreflang="zh-Hans" href="https://chengffei.github.io/uptick/zh/">
+<link rel="alternate" hreflang="x-default" href="https://chengffei.github.io/uptick/">
+<link rel="alternate" type="text/plain" title="llms.txt" href="https://chengffei.github.io/uptick/llms.txt">
+<meta name="theme-color" content="#f5f5f7">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Uptick">
+<meta property="og:url" content="https://chengffei.github.io/uptick/zh/">
+<meta property="og:title" content="Uptick：免费开源的 Mac 应用更新工具">
+<meta property="og:description" content="每个 app，都是最新。Uptick 找出已装 app 的更新，核对每个下载包，一键安装。">
+<meta property="og:image" content="https://chengffei.github.io/uptick/images/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Uptick 图标：白色的 U 向上翻成绿色箭头">
+<meta property="og:locale" content="zh_CN">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Uptick：免费开源的 Mac 应用更新工具">
+<meta name="twitter:description" content="每个 app，都是最新。Uptick 找出已装 app 的更新，核对每个下载包，一键安装。">
+<meta name="twitter:image" content="https://chengffei.github.io/uptick/images/og.png">
+<link rel="icon" type="image/png" sizes="64x64" href="../images/favicon.png">
+<link rel="apple-touch-icon" href="../images/apple-touch-icon.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Uptick",
+  "description": "免费开源的 Mac 应用更新工具。从 Mac App Store、Sparkle、Electron 更新源和 Homebrew Cask 查找已装 app 的更新，核对每个下载包后安装。",
+  "applicationCategory": "UtilitiesApplication",
+  "applicationSubCategory": "软件更新工具",
+  "operatingSystem": "macOS 14 或更高",
+  "softwareVersion": "0.2.0",
+  "dateModified": "2026-10-30",
+  "downloadUrl": "https://github.com/chengffei/uptick/releases/download/v0.2.0/Uptick-0.2.0.dmg",
+  "inLanguage": "zh-Hans",
+  "url": "https://chengffei.github.io/uptick/zh/",
+  "screenshot": "https://chengffei.github.io/uptick/images/app-zh.png",
+  "image": "https://chengffei.github.io/uptick/images/icon.png",
+  "license": "https://www.gnu.org/licenses/gpl-3.0.html",
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Felix",
+    "url": "https://github.com/chengffei"
+  },
+  "codeRepository": "https://github.com/chengffei/uptick"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "inLanguage": "zh-Hans",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Uptick 能替代 MacUpdater 吗？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "能。MacUpdater 在 2026 年 1 月停止开发。Uptick 做同样的事：列出哪些 app 有更新，并帮你装好。它免费开源。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Uptick 的版本信息从哪来？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "来自每个 app 自己的更新渠道：Apple 的 App Store 查询接口、app 的 Sparkle 源、Electron 更新源，或 Homebrew 公开的 cask 清单。没有 Uptick 服务器。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Uptick 会收集数据吗？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "不会。不用账号，不收集使用数据。Uptick 只向上面这些来源查版本号，下载你选择的更新，并到 GitHub 查自己的新版本。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "为什么 App Store 的 app 会打开 App Store？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "新版 macOS 不再允许其他 app 安装 App Store 的更新，所以 Uptick 打开对应页面，由 App Store 完成更新。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "「需确认」是什么意思？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "来源和 app 的版本号写法不一样，Uptick 不确定比较结果对不对。点「核实」会下载更新包，读出真实版本并记住。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "为什么 macOS 提示无法验证开发者？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Uptick 有签名，但没有经过 Apple 公证。用一行命令安装就不会弹出提示；用安装包的话，打开一次后到「系统设置 › 隐私与安全性」点「仍要打开」。"
+      }
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "如何在 Mac 上安装 Uptick",
+  "inLanguage": "zh-Hans",
+  "step": [
+    {
+      "@type": "HowToStep",
+      "name": "终端里一行命令",
+      "text": "curl -fsSL https://raw.githubusercontent.com/chengffei/uptick/main/install.sh | bash 安装脚本下载最新版，核对校验和、签名、bundle ID 和开发者，再放进「应用程序」并打开。"
+    },
+    {
+      "@type": "HowToStep",
+      "name": "或者用安装包",
+      "text": "下载 Uptick-0.2.0.dmg，把 Uptick 拖进「应用程序」。 第一次打开时关掉警告，到「系统设置 › 隐私与安全性」点「仍要打开」。"
+    }
+  ]
+}
+</script>
+<style>
+  :root {
+    --paper: #f5f5f7;
+    --card: #ffffff;
+    --ink: #1d1d1f;
+    --muted: #6e6e73;
+    --line: rgba(0, 0, 0, .08);
+    --green: #248a3d;
+    --night: #1c1c26;
+    --radius: 18px;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 17px/1.75 -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--green); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  img { max-width: 100%; height: auto; display: block; }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  nav {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(245, 245, 247, .82);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid var(--line);
+  }
+  nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 56px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--ink); }
+  .brand:hover { text-decoration: none; }
+  .brand img { width: 28px; height: 28px; }
+  .nav-links { display: flex; align-items: center; gap: 20px; font-size: 15px; }
+  .nav-links a { color: var(--ink); }
+
+  .lang-toggle {
+    display: inline-block; text-decoration: none;
+    font: inherit; font-size: 13px; color: var(--muted);
+    background: none; border: 1px solid var(--line); border-radius: 999px;
+    padding: 4px 12px; cursor: pointer;
+  }
+  .lang-toggle:hover { color: var(--ink); border-color: rgba(0,0,0,.18); text-decoration: none; }
+  .hero { text-align: center; padding: 88px 24px 56px; }
+  .hero .icon { width: 144px; height: 144px; margin: 0 auto 24px; }
+  .narrow { max-width: 760px; }
+  .definition { font-size: 19px; line-height: 1.7; margin: 0; text-align: left; }
+  .eyebrow { margin: 0 0 14px; font-size: 15px; font-weight: 600; letter-spacing: .02em; color: var(--green); }
+  h1 {
+    font-size: clamp(40px, 7vw, 68px); line-height: 1.08; letter-spacing: -.02em;
+    margin: 0 0 18px; font-weight: 700;
+  }
+  .lead { font-size: clamp(18px, 2.4vw, 22px); color: var(--muted); margin: 0 auto 36px; max-width: 640px; }
+  .actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 13px 26px; border-radius: 999px; font-size: 17px; font-weight: 500;
+  }
+  .btn:hover { text-decoration: none; }
+  .btn-primary { background: var(--night); color: #fff; }
+  .btn-primary:hover { background: #000; }
+  .btn-secondary { color: var(--ink); border: 1px solid rgba(0,0,0,.15); }
+  .btn-secondary:hover { background: rgba(0,0,0,.03); }
+  .meta { margin-top: 16px; font-size: 14px; color: var(--muted); }
+
+  .window {
+    margin: 0 auto; max-width: 820px; border-radius: 14px; overflow: hidden; background: #fff;
+    box-shadow: 0 30px 80px rgba(20, 30, 60, .14), 0 0 0 1px rgba(0,0,0,.06);
+  }
+  .titlebar {
+    display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 18px;
+    background: #ececee; border-bottom: 1px solid var(--line); font-size: 14px;
+  }
+  .titlebar i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+  .titlebar i:nth-child(1) { background: #ff5f57; }
+  .titlebar i:nth-child(2) { background: #febc2e; }
+  .titlebar i:nth-child(3) { background: #28c840; }
+  .titlebar b { margin-left: 14px; font-weight: 600; }
+  .titlebar span { color: var(--muted); margin-left: 8px; }
+  .titlebar .tb { margin-left: auto; border: 1px solid rgba(0,0,0,.12); border-radius: 7px; padding: 3px 10px; background: #fff; }
+
+  section.wrap { padding-top: 112px; }
+  h2 {
+    font-size: clamp(30px, 4.4vw, 44px); line-height: 1.15; letter-spacing: -.015em;
+    margin: 0 0 14px; text-align: center; font-weight: 700;
+  }
+  .section-lead { text-align: center; color: var(--muted); margin: 0 auto 48px; max-width: 620px; font-size: 19px; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+  .card { background: var(--card); border-radius: var(--radius); padding: 28px; }
+  .card .glyph { width: 36px; height: 36px; color: var(--green); margin-bottom: 14px; }
+  .card h3 { margin: 0 0 6px; font-size: 19px; }
+  .card p { margin: 0; color: var(--muted); font-size: 15.5px; }
+
+  .steps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  .step { background: var(--card); border-radius: var(--radius); padding: 28px; }
+  .step h3 { margin: 0 0 6px; font-size: 18px; }
+  .step p { margin: 0 0 14px; color: var(--muted); font-size: 15.5px; }
+  .step p:last-child { margin-bottom: 0; }
+  .note { text-align: center; color: var(--muted); font-size: 14px; margin-top: 22px; }
+  pre {
+    margin: 0 0 14px; padding: 16px 18px; overflow-x: auto;
+    background: var(--paper); border-radius: 12px;
+    font: 13.5px/1.6 "SF Mono", Menlo, monospace; color: var(--ink);
+  }
+  section > pre { max-width: 640px; margin: 0 auto 28px; background: var(--card); }
+
+  .table-scroll { overflow-x: auto; }
+  table.compare { width: 100%; max-width: 1000px; margin: 0 auto; border-collapse: collapse; background: var(--card); border-radius: var(--radius); overflow: hidden; }
+  table.compare th { padding: 16px 18px; text-align: left; font-size: 15px; border-bottom: 1px solid var(--line); }
+  table.compare td { padding: 16px 18px; text-align: left; font-size: 15px; border-bottom: 1px solid var(--line); }
+  table.compare tr:last-child td { border-bottom: none; }
+  table.compare td:first-child { color: var(--muted); }
+  table.compare th:nth-child(2), table.compare td:nth-child(2) { background: rgba(36, 138, 61, .07); font-weight: 600; }
+
+  .faq { max-width: 760px; margin: 0 auto; }
+  .faq details { background: var(--card); border-radius: 14px; padding: 18px 24px; margin-bottom: 12px; }
+  .faq summary { cursor: pointer; font-weight: 600; font-size: 17px; list-style: none; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: "+"; float: right; color: var(--muted); font-weight: 400; }
+  .faq details[open] summary::after { content: "–"; }
+  .faq p { margin: 10px 0 0; color: var(--muted); font-size: 16px; }
+
+  footer.wrap { padding-top: 96px; padding-bottom: 56px; text-align: center; color: var(--muted); font-size: 14px; }
+  footer p { margin: 6px 0; }
+
+  @media (max-width: 820px) {
+    .grid, .steps { grid-template-columns: minmax(0, 1fr); }
+    .hero { padding: 56px 24px 40px; }
+    section.wrap { padding-top: 80px; }
+    .nav-links .hide-sm { display: none; }
+    .titlebar span, .titlebar .tb { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="./"><img src="../images/favicon.png" width="28" height="28" alt="">Uptick</a>
+    <div class="nav-links">
+      <a class="hide-sm" href="#features">功能</a>
+      <a class="hide-sm" href="#compare">对比</a>
+      <a class="hide-sm" href="#install">安装</a>
+      <a href="https://github.com/chengffei/uptick">GitHub</a>
+      <a class="lang-toggle" href="../" hreflang="en" lang="en">EN</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+<header class="hero wrap">
+  <img class="icon" src="../images/icon-256.png" width="144" height="144" alt="Uptick 图标">
+  <p class="eyebrow">免费的 Mac 应用更新工具 · MacUpdater 的接班人</p>
+  <h1>每个 app，<br>都是最新。</h1>
+  <p class="lead">
+    找出已装 app 的更新，核对每个下载包，一键装好。
+  </p>
+  <div class="actions">
+    <a class="btn btn-primary" href="#install">获取 Uptick</a>
+    <a class="btn btn-secondary" href="https://github.com/chengffei/uptick">在 GitHub 查看</a>
+  </div>
+  <p class="meta">
+    免费开源 · 无需账号，不收集数据 · macOS 14 或更高 · 版本 0.2.0
+  </p>
+</header>
+
+<div class="wrap">
+  <div class="window">
+    <div class="titlebar"><i></i><i></i><i></i><b>Uptick</b><span>上次检查 16:30</span><span class="tb">全部更新</span></div>
+    <img src="../images/app-zh.png" width="1560" height="1456" alt="Uptick 窗口：可更新的 app 逐个列出已装版本、最新版本和「更新」或「打开 App Store」按钮，下面是已是最新的 app" loading="eager">
+  </div>
+</div>
+
+<section id="about" class="wrap narrow">
+  <h2>Uptick 是什么？</h2>
+  <p class="definition">
+    Uptick 是免费开源的 Mac 应用更新工具。它读出「应用程序」文件夹里每个 app 的版本，向各自的更新渠道查最新版，列出该更新的。点「更新」，Uptick 下载新版，核对是同一个 app、同一个开发者、签名有效，再换上去。旧版移进废纸篓。它是原生 SwiftUI 应用，支持 Apple 芯片和 Intel。MacUpdater 在 2026 年 1 月停止开发，Uptick 是它的接班人。
+  </p>
+</section>
+
+<section id="features" class="wrap">
+  <h2>先核对，再安装。</h2>
+  <p class="section-lead">
+    更新工具会替换你的 app，理应小心。
+  </p>
+  <div class="grid">
+    <div class="card">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7z"/><path d="M9 12l2 2 4-4"/></svg>
+      <h3>同一个 app，同一个开发者。</h3>
+      <p>每个下载包都要和已装 app 的 bundle ID、开发者 Team ID 一致，签名有效。对不上就停。</p>
+    </div>
+    <div class="card">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/></svg>
+      <h3>旧版进废纸篓。</h3>
+      <p>Uptick 从不直接删除。新版复制失败，就把旧版放回原处。</p>
+    </div>
+    <div class="card">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/><path d="M11 8v3l2 1"/></svg>
+      <h3>更少误报。</h3>
+      <p>来源和 app 的版本号写法不一样时，Uptick 会标出来。点「核实」读一次真实版本，之后记住。</p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <h2>四个来源，没有 Uptick 服务器。</h2>
+  <p class="section-lead">
+    版本号直接来自每个 app 自己的更新渠道。
+  </p>
+  <div class="grid">
+    <div class="card">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 15l3-7 3 7M10 13h4"/></svg>
+      <h3>Mac App Store</h3>
+      <p>用 Apple 的查询接口，取 Mac 版记录，不取 iPhone 版。更新交给 App Store 安装。</p>
+    </div>
+    <div class="card">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M6 18l2.5-2.5M15.5 8.5L18 6"/></svg>
+      <h3>Sparkle</h3>
+      <p>多数独立 Mac app 都发布的 appcast，按构建号比较，和 Sparkle 自己的判断一致。</p>
+    </div>
+    <div class="card">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><ellipse cx="12" cy="12" rx="9" ry="3.5"/><ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(120 12 12)"/></svg>
+      <h3>Electron</h3>
+      <p>Electron app 在包里声明的更新源，按你的芯片挑下载包。</p>
+    </div>
+    <div class="card">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9h12l-1 11H7z"/><path d="M9 9V7a3 3 0 0 1 6 0v2"/></svg>
+      <h3>Homebrew Cask</h3>
+      <p>其余的查 Homebrew 公开的 7,000 多个 app 清单。不用装 Homebrew。</p>
+    </div>
+    <div class="card">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg>
+      <h3>知道何时该重启</h3>
+      <p>Chrome 这类 app 会自己更新磁盘上的文件。正在运行的还是旧版时，Uptick 会提示重启。</p>
+    </div>
+    <div class="card">
+      <svg class="glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10l3 2-3 2M12 14h5"/></svg>
+      <h3>也有命令行</h3>
+      <p>同一套引擎做成命令行：在终端里列出更新、核实或安装。</p>
+    </div>
+  </div>
+</section>
+
+<section id="compare" class="wrap">
+  <h2>Uptick、Latest 与 MacUpdater 对比</h2>
+  <p class="section-lead">
+    MacUpdater 已停止开发。Latest 免费，但最后一个正式版在 2025 年 6 月。Uptick 免费开源，持续更新。
+  </p>
+  <div class="table-scroll">
+  <table class="compare">
+    <thead><tr><th></th><th>Uptick</th><th>Latest</th><th>MacUpdater</th></tr></thead>
+    <tbody>
+      <tr><td>价格</td><td>免费 · GPL-3.0</td><td>免费 · GPL-3.0</td><td>付费</td></tr>
+      <tr><td>状态</td><td>持续更新</td><td>正式版停在 0.11（2025 年 6 月）；0.12 测试版（2026 年 2 月）</td><td>2026 年 1 月停止开发</td></tr>
+      <tr><td>更新来源</td><td>App Store、Sparkle、Electron、Homebrew</td><td>App Store、Sparkle、Homebrew</td><td>自建数据库</td></tr>
+      <tr><td>安装前核对下载包</td><td>bundle ID、Team ID、签名</td><td>未说明</td><td>未说明</td></tr>
+      <tr><td>命令行</td><td>有</td><td>有人提需求，未实现</td><td>未说明</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">2026 年 10 月 30 日核对：<a href="https://github.com/mangerlahn/Latest">Latest 仓库与发布记录</a>，<a href="https://tidbits.com/2026/01/09/macupdater-shuts-down-leaving-users-searching-for-alternatives/">TidBITS 关于 MacUpdater 停更的报道</a>。</p>
+</section>
+
+<section id="install" class="wrap">
+  <h2>安装</h2>
+  <p class="section-lead">
+    Uptick 没有经过 Apple 公证。用一行命令安装，不会弹警告。
+  </p>
+  <div class="steps">
+    <div class="step">
+      <h3>终端里一行命令</h3>
+      <pre>curl -fsSL https://raw.githubusercontent.com/chengffei/uptick/main/install.sh | bash</pre>
+      <p><a href="https://github.com/chengffei/uptick/blob/main/install.sh">安装脚本</a>下载最新版，核对校验和、签名、bundle ID 和开发者，再放进「应用程序」并打开。</p>
+    </div>
+    <div class="step">
+      <h3>或者用安装包</h3>
+      <p>下载 <a href="https://github.com/chengffei/uptick/releases/download/v0.2.0/Uptick-0.2.0.dmg">Uptick-0.2.0.dmg</a>，把 Uptick 拖进「应用程序」。</p>
+      <p>第一次打开时关掉警告，到「系统设置 › 隐私与安全性」点「仍要打开」。</p>
+    </div>
+  </div>
+  <p class="note">需要 macOS 14 或更高。之后 Uptick 会自己更新。</p>
+</section>
+
+<section id="build" class="wrap">
+  <h2>从源码构建</h2>
+  <p class="section-lead">
+    需要 Xcode 26 或更高。一个脚本完成构建、签名和打开。
+  </p>
+<pre>git clone https://github.com/chengffei/uptick.git
+cd uptick
+scripts/bundle.sh --open</pre>
+</section>
+
+<section id="faq" class="wrap">
+  <h2>常见问题</h2>
+  <p class="section-lead">关于 Uptick 的常见问题。</p>
+  <div class="faq">
+    <details><summary>Uptick 能替代 MacUpdater 吗？</summary><p>能。MacUpdater 在 2026 年 1 月停止开发。Uptick 做同样的事：列出哪些 app 有更新，并帮你装好。它免费开源。</p></details>
+    <details><summary>Uptick 的版本信息从哪来？</summary><p>来自每个 app 自己的更新渠道：Apple 的 App Store 查询接口、app 的 Sparkle 源、Electron 更新源，或 Homebrew 公开的 cask 清单。没有 Uptick 服务器。</p></details>
+    <details><summary>Uptick 会收集数据吗？</summary><p>不会。不用账号，不收集使用数据。Uptick 只向上面这些来源查版本号，下载你选择的更新，并到 GitHub 查自己的新版本。</p></details>
+    <details><summary>为什么 App Store 的 app 会打开 App Store？</summary><p>新版 macOS 不再允许其他 app 安装 App Store 的更新，所以 Uptick 打开对应页面，由 App Store 完成更新。</p></details>
+    <details><summary>「需确认」是什么意思？</summary><p>来源和 app 的版本号写法不一样，Uptick 不确定比较结果对不对。点「核实」会下载更新包，读出真实版本并记住。</p></details>
+    <details><summary>为什么 macOS 提示无法验证开发者？</summary><p>Uptick 有签名，但没有经过 Apple 公证。用一行命令安装就不会弹出提示；用安装包的话，打开一次后到「系统设置 › 隐私与安全性」点「仍要打开」。</p></details>
+  </div>
+</section>
+
+</main>
+
+<footer class="wrap">
+  <p class="more-apps">Felix 的其他免费开源 Mac 应用：<a href="../../clip/zh/">Clip</a>（截图、录屏和文字识别）、<a href="../../leaf/zh/">Leaf</a>（像 Kindle 一样的电子书阅读器）</p>
+  <p>Uptick 以 GPL-3.0 协议开源</p>
+  <p><a href="https://github.com/chengffei/uptick">github.com/chengffei/uptick</a></p>
+  <p>作者 <a href="https://github.com/chengffei">Felix</a> · 版本 0.2.0 · 更新于 <time datetime="2026-10-30">2026 年 10 月 30 日</time></p>
+</footer>
+
+</body>
+</html>

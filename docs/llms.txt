@@ -20,6 +20,6 @@ Uptick reads the version of every app in /Applications and ~/Applications and as
 
 ## Links
 
-- Website: https://chengffei.github.io/uptick/
+- Website: https://chengffei.github.io/uptick/ (Chinese: https://chengffei.github.io/uptick/zh/)
 - Source code: https://github.com/chengffei/uptick
 - Releases: https://github.com/chengffei/uptick/releases
