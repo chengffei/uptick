@@ -5,6 +5,7 @@ import UptickCore
 // uptick --updates       list only apps with an update
 // uptick verify NAME...  download the update, read the app inside, and remember what it really is
 // uptick install NAME... install the update (old version goes to the Trash)
+// uptick feed NAME      print the raw update feed an app declares (for debugging sources)
 // --folder PATH          scan PATH instead of /Applications and ~/Applications
 
 var arguments = Array(CommandLine.arguments.dropFirst())
@@ -47,6 +48,22 @@ if arguments.first == "verify" {
         }
     }
     try learned.save()
+    exit(0)
+}
+
+if arguments.first == "feed" {
+    for name in arguments.dropFirst() {
+        guard let app = apps.first(where: { $0.name.localizedCaseInsensitiveCompare(name) == .orderedSame }) else { continue }
+        var feed: URL?
+        if let sparkle = app.sparkleFeed { feed = sparkle }
+        if case .generic(let base)? = app.electronFeed { feed = base.appendingPathComponent("latest-mac.yml") }
+        guard let feed else { print("\(name): no feed"); continue }
+        var request = URLRequest(url: feed)
+        request.setValue("Uptick", forHTTPHeaderField: "User-Agent")
+        let (data, response) = try await URLSession.shared.data(for: request)
+        print("\(name): \(feed.absoluteString) → \((response as? HTTPURLResponse)?.statusCode ?? 0)")
+        print(String(decoding: data.prefix(1500), as: UTF8.self))
+    }
     exit(0)
 }
 

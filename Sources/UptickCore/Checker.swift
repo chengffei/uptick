@@ -172,7 +172,13 @@ public struct Checker {
                   let text = String(data: data, encoding: .utf8) else { return nil }
             let fields = SimpleYAML.fields(text)
             guard let version = fields["version"] else { return nil }
-            let download = fields["path"].flatMap { URL(string: $0, relativeTo: base.appendingPathComponent("")) }
+            #if arch(arm64)
+            let arm64 = true
+            #else
+            let arm64 = false
+            #endif
+            let download = SimpleYAML.macDownload(text, arm64: arm64)
+                .flatMap { URL(string: $0, relativeTo: base.appendingPathComponent("")) }
             return (version, download?.absoluteURL)
         case .github(let owner, let repo):
             guard let data = try? await fetch(URL(string: "https://api.github.com/repos/\(owner)/\(repo)/releases/latest")!),

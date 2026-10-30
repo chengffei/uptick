@@ -63,6 +63,22 @@ final class FeedTests: XCTestCase {
         XCTAssertEqual(ElectronFeed.parse("owner: a\nrepo: b\nprovider: github\n"), .github(owner: "a", repo: "b"))
     }
 
+    func testMacDownloadPrefersFilesOverStalePath() {
+        let yaml = """
+        version: 1.20.0
+        files:
+          - url: bilibili-1.20.0-mac.zip
+            sha512: abc
+          - url: bilibili-1.20.0-arm64-mac.zip
+            sha512: def
+          - url: bilibili-1.20.0-arm64.dmg
+        path: bilibili-v1.20.0.zip
+        """
+        XCTAssertEqual(SimpleYAML.macDownload(yaml, arm64: true), "bilibili-1.20.0-arm64-mac.zip")
+        XCTAssertEqual(SimpleYAML.macDownload(yaml, arm64: false), "bilibili-1.20.0-mac.zip")
+        XCTAssertEqual(SimpleYAML.macDownload("version: 1\npath: a.zip\n", arm64: true), "a.zip")
+    }
+
     func testLatestMacYAMLTakesTopLevelVersion() {
         let yaml = "version: 2.3.1\nfiles:\n  - url: a.zip\n    version: 9\npath: a.zip\n"
         XCTAssertEqual(SimpleYAML.fields(yaml)["version"], "2.3.1")

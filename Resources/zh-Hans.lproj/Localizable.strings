@@ -23,3 +23,7 @@
 "The app did not quit. Quit it and try again." = "这个 app 没能退出，请手动退出后重试。";
 "macOS did not allow Uptick to change this app. Turn on Uptick under Privacy & Security › App Management." = "系统不允许 Uptick 修改这个 app。请到「隐私与安全性 › App 管理」里打开 Uptick。";
 "Copying the new version failed: %@" = "复制新版本失败：%@";
+"The download is not a zip or dmg (%@)." = "下载到的不是 zip 或 dmg（%@）。";
+"No app was found inside the download." = "下载包里没有找到 app。";
+"The download server answered with error %d." = "下载服务器返回错误 %d，更新包暂时下载不到。";
+"The download server sent a web page instead of the app. The vendor may block direct downloads." = "下载服务器返回的是网页而不是安装包，厂商可能不允许直接下载。";

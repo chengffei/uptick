@@ -43,6 +43,29 @@ public enum ElectronFeed: Sendable, Equatable {
 
 /// Reads the flat `key: value` lines that app-update.yml and latest-mac.yml use. Not a YAML parser.
 enum SimpleYAML {
+    /// The `url` of each entry under `files:` in latest-mac.yml.
+    static func fileURLs(_ text: String) -> [String] {
+        var urls: [String] = []
+        var inFiles = false
+        for line in text.split(whereSeparator: \.isNewline) {
+            if !line.hasPrefix(" ") && !line.hasPrefix("-") { inFiles = line.hasPrefix("files:") ; continue }
+            guard inFiles else { continue }
+            let trimmed = line.trimmingCharacters(in: .whitespaces).drop { $0 == "-" || $0 == " " }
+            if trimmed.hasPrefix("url:") {
+                urls.append(fields(String(trimmed))["url"] ?? "")
+            }
+        }
+        return urls.filter { !$0.isEmpty }
+    }
+
+    /// Picks the download electron-updater would: a zip, matching this Mac's architecture when
+    /// the feed offers both; `path` only as a last resort, since some feeds leave it stale.
+    static func macDownload(_ text: String, arm64: Bool) -> String? {
+        let zips = fileURLs(text).filter { $0.lowercased().split(separator: "?").first?.hasSuffix(".zip") == true }
+        let matching = zips.filter { $0.contains("arm64") == arm64 }
+        return matching.first ?? zips.first ?? fields(text)["path"]
+    }
+
     static func fields(_ text: String) -> [String: String] {
         var result: [String: String] = [:]
         for line in text.split(whereSeparator: \.isNewline) where !line.hasPrefix(" ") && !line.hasPrefix("-") {

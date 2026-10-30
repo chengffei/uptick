@@ -9,18 +9,30 @@ public struct InspectedApp: Sendable {
     public let teamID: String?
 }
 
-public enum InspectError: Error, CustomStringConvertible {
+public enum InspectError: Error, LocalizedError, CustomStringConvertible {
     case unsupportedFormat(String)
     case noApp
     case tool(String)
+    /// The server answered with an error status instead of the package.
+    case httpStatus(Int)
+    /// The server sent a web page (often an error or login page) instead of the package.
+    case webPage
 
-    public var description: String {
+    /// Looked up in the main bundle, so the app's Localizable.strings translates them.
+    public var errorDescription: String? {
+        func text(_ key: String, _ args: CVarArg...) -> String {
+            String(format: NSLocalizedString(key, comment: ""), arguments: args)
+        }
         switch self {
-        case .unsupportedFormat(let ext): return "unsupported package format: \(ext)"
-        case .noApp: return "no .app found in package"
+        case .unsupportedFormat(let format): return text("The download is not a zip or dmg (%@).", format)
+        case .noApp: return text("No app was found inside the download.")
         case .tool(let message): return message
+        case .httpStatus(let code): return text("The download server answered with error %d.", code)
+        case .webPage: return text("The download server sent a web page instead of the app. The vendor may block direct downloads.")
         }
     }
+
+    public var description: String { errorDescription ?? "" }
 }
 
 /// An unpacked update: the app inside a zip or a mounted dmg. Call `close()` when done.
@@ -59,7 +71,11 @@ public enum PackageInspector {
         try FileManager.default.createDirectory(at: work, withIntermediateDirectories: true)
         var request = URLRequest(url: url, timeoutInterval: 120)
         request.setValue("Uptick", forHTTPHeaderField: "User-Agent")
-        let (downloaded, _) = try await session.download(for: request)
+        let (downloaded, response) = try await session.download(for: request)
+        if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
+            try? FileManager.default.removeItem(at: work)
+            throw InspectError.httpStatus(http.statusCode)
+        }
         let file = work.appendingPathComponent("package")
         try FileManager.default.moveItem(at: downloaded, to: file)
         return file
@@ -86,6 +102,8 @@ public enum PackageInspector {
                     try? run("/usr/bin/hdiutil", ["detach", "-force", mount.path])
                     throw error
                 }
+            case "web":
+                throw InspectError.webPage
             case let other:
                 throw InspectError.unsupportedFormat(other)
             }
@@ -104,6 +122,7 @@ public enum PackageInspector {
         let head = try handle.read(upToCount: 4) ?? Data()
         if head.starts(with: [0x50, 0x4B]) { return "zip" }
         if head.starts(with: [0x78, 0x61, 0x72, 0x21]) { return "pkg" }
+        if let text = String(data: head, encoding: .ascii), text.hasPrefix("<") || text.hasPrefix("{") { return "web" }
         // UDIF disk images end with a 512-byte "koly" trailer.
         let size = try handle.seekToEnd()
         if size >= 512 {
