@@ -19,4 +19,4 @@ By submitting a contribution (code, documentation, or other material) to this pr
 Version-mapping reports submitted through issues are factual data and do not require this agreement.
 
 You accept this agreement by commenting "I have read the CLA and I agree" on your pull request,
-or through the CLA Assistant check when it is enabled.
+The CLA check on each pull request records your agreement.
