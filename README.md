@@ -14,7 +14,7 @@ curl -fsSL https://raw.githubusercontent.com/chengffei/uptick/main/install.sh | 
 
 The [script](install.sh) downloads the latest release, checks its SHA-256, code signature, bundle ID and developer team, and puts Uptick in Applications. Downloads made this way are not quarantined, so macOS opens Uptick without a warning.
 
-**Or download the disk image**: [Uptick-0.1.0.dmg](https://github.com/chengffei/uptick/releases/download/v0.1.0/Uptick-0.1.0.dmg), then drag Uptick into Applications. Uptick is signed but not notarized, so macOS blocks the first launch: open it, close the warning, then click **Open Anyway** in *System Settings › Privacy & Security*.
+**Or download the disk image**: [Uptick-0.2.0.dmg](https://github.com/chengffei/uptick/releases/download/v0.2.0/Uptick-0.2.0.dmg), then drag Uptick into Applications. Uptick is signed but not notarized, so macOS blocks the first launch: open it, close the warning, then click **Open Anyway** in *System Settings › Privacy & Security*.
 
 After that, Uptick updates itself: when a new version is out, a bar at the top of the window offers **Update and Relaunch**.
 
